@@ -7,7 +7,6 @@ const jwt = require("jsonwebtoken");
 const CYPHERKEY = process.env.CYPHERKEY;
 const clc = require("cli-color");
 const SALT_WORK_FACTOR = 10;
-const ObjectId = require('mongodb').ObjectId;
 
 module.exports = {
 
@@ -42,38 +41,38 @@ module.exports = {
         })
     },
 
-    /**
-     * @param {object} userId wise get user details 
-     */
-    getSingleUser: (userId) => {
-        return new Promise((resolve, reject) => {
-            UserModel.aggregate([
-                {
-                    $match: { '_id': ObjectId(userId) }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        email: 1,
-                        name: 1,
-                        phone: 1,
-                        designation: 1,
-                        location: 1,
-                        dob: 1,
-                        dateOfJoining: 1,
-                        salary: 1,
-                    }
-                }
-            ]).exec((err, user) => {
-				if (err) {
-					reject({ status: 500, message: 'Internal Serevr Error' });
-				} else if (user){
-                    resolve({ status: 200, data:user});
-				} else {
-                    reject({ status: 404, message: 'No User found.' });
-				}
-			})
-        })
-    }
+    // /**
+    //  * @param {object} userId wise get user details 
+    //  */
+    // getSingleUser: (userId) => {
+    //     return new Promise((resolve, reject) => {
+    //         UserModel.aggregate([
+    //             {
+    //                 $match: { '_id': ObjectId(userId) }
+    //             },
+    //             {
+    //                 $project: {
+    //                     _id: 1,
+    //                     email: 1,
+    //                     name: 1,
+    //                     phone: 1,
+    //                     designation: 1,
+    //                     location: 1,
+    //                     dob: 1,
+    //                     dateOfJoining: 1,
+    //                     salary: 1,
+    //                 }
+    //             }
+    //         ]).exec((err, user) => {
+	// 			if (err) {
+	// 				reject({ status: 500, message: 'Internal Serevr Error' });
+	// 			} else if (user){
+    //                 resolve({ status: 200, data:user});
+	// 			} else {
+    //                 reject({ status: 404, message: 'No User found.' });
+	// 			}
+	// 		})
+    //     })
+    // }
 }
 

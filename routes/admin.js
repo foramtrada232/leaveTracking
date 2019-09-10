@@ -10,8 +10,8 @@ const AdminValidation = require("../validations/AdminValidations");
 
 router.post("/signup",AdminController.signUp);
 router.post("/login", AdminValidation.login,AdminController.login);
-router.get("/get-all-users",withAuth,AdminController.getAllUsers);
-router.get('/get-user-by-id/:userId',AdminController.getSingleUser);
+// router.get("/get-all-users",withAuth,AdminController.getAllUsers);
+// router.get('/get-user-by-id/:userId',AdminController.getSingleUser);
 
 
 module.exports = router;

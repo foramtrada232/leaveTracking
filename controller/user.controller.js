@@ -18,7 +18,7 @@ module.exports = {
 		})
 	},
 
-	
+
 	/** 
 	 * user login with email
 	 */
@@ -35,4 +35,27 @@ module.exports = {
 		})
 	},
 
-};
+/** 
+ * get all user
+ */
+getAllUsers (req, res) {
+	UserService.getAllUsers().then((response) => {
+		return res.status(response.status ? response.status : 200).json({ message: response.message, data: response.data });
+	}).catch((error) => {
+		console.log('error:', error);
+		return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'internal server error' });
+	})
+},
+
+/**
+ * userId wise get user details
+ */
+getSingleUser(req, res) {
+	const userId = req.params.userId;
+	UserService.getSingleUser(userId).then((response) => {
+		return res.status(response.status ? response.status : 200).json({ message: response.message, data: response.data })
+	}).catch((error) => {
+		return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'internal server error' });
+	})
+},
+}

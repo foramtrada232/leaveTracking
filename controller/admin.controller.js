@@ -34,53 +34,53 @@ const AdminModel = require("../models/admin.model");
 		})
 	}
 	
-	/** 
-	 * get all user
-	 */
-	getAllUsers = function(req, res) {
-		UserModel.aggregate([
-			{
-				$match: { }
-			},
-			{
-				$project: {
-					_id: 1,
-					email: 1,
-					name: 1,
-					phone: 1,
-					designation: 1,
-					location: 1,
-					dateOfJoining: 1,
-					dob: 1,
-					salary : 1
-				}
-			}
-		]).exec((err, users) => {
-				if (err) {
-					res.status(500).send(err);
-				} else if (users){
-					res.status(200).send({data:users});
-				} else {
-					res.status(404).json({msg:'No User found.'})
-				}
-			})
-	}
+	// /** 
+	//  * get all user
+	//  */
+	// getAllUsers = function(req, res) {
+	// 	UserModel.aggregate([
+	// 		{
+	// 			$match: { }
+	// 		},
+	// 		{
+	// 			$project: {
+	// 				_id: 1,
+	// 				email: 1,
+	// 				name: 1,
+	// 				phone: 1,
+	// 				designation: 1,
+	// 				location: 1,
+	// 				dateOfJoining: 1,
+	// 				dob: 1,
+	// 				salary : 1
+	// 			}
+	// 		}
+	// 	]).exec((err, users) => {
+	// 			if (err) {
+	// 				res.status(500).send(err);
+	// 			} else if (users){
+	// 				res.status(200).send({data:users});
+	// 			} else {
+	// 				res.status(404).json({msg:'No User found.'})
+	// 			}
+	// 		})
+	// }
 
-	/**
-	 * userId wise get user details
-	 */
-	getSingleUser = function(req, res) {
-		const userId =req.params.userId;
-		AdminService.getSingleUser(userId).then((response) => {
-			return res.status(response.status ? response.status : 200).json({message: response.message, data: response.data})
-		}).catch((error) => {
-			return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'internal server error' });
-		})
-	}
+	// /**
+	//  * userId wise get user details
+	//  */
+	// getSingleUser = function(req, res) {
+	// 	const userId =req.params.userId;
+	// 	AdminService.getSingleUser(userId).then((response) => {
+	// 		return res.status(response.status ? response.status : 200).json({message: response.message, data: response.data})
+	// 	}).catch((error) => {
+	// 		return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'internal server error' });
+	// 	})
+	// }
 
 	module.exports = {
 		signUp : signUp,
 		login : login,
-		getSingleUser : getSingleUser,
-		getAllUsers : getAllUsers,
+		// getSingleUser : getSingleUser,
+		// getAllUsers : getAllUsers,
 };

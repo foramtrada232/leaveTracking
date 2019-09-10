@@ -3,6 +3,7 @@ const UserModel = require("../models/user.model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require('bcryptjs');
 const CYPHERKEY = process.env.CYPHERKEY;
+const ObjectId = require('mongodb').ObjectId;
 
 
 /** 
@@ -12,7 +13,7 @@ const signup = (userData) => {
     return new Promise((resolve, reject) => {
         UserModel.findOne({ email: userData.email }).exec((err, foundUser) => {
             if (err) {
-                reject({ status: 500, message: 'Internal Serevr Error' })
+                reject({ status: 500, message: 'Internal Server Error' })
             } else if (foundUser) {
                 resolve({ status: 409, message: 'Email already registerd.' })
             } else {
@@ -35,7 +36,7 @@ const login = (userData) => {
     return new Promise((resolve, reject) => {
         UserModel.findOne({ email: userData.email }, function (err, user) {
             if (err) {
-                reject({ status: 500, message: 'Internal Serevr Error' });
+                reject({ status: 500, message: 'Internal Server Error' });
             } else if (!user) {
                 reject({ status: 404, message: 'No user found' });
             } else if (user) {
@@ -55,9 +56,76 @@ const login = (userData) => {
     })
 }
 
+  /**
+     * @param {object} userId wise get user details 
+     */
+ const getSingleUser = (userId) => {
+        return new Promise((resolve, reject) => {
+            UserModel.aggregate([
+                {
+                    $match: { '_id': ObjectId(userId) }
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        email: 1,
+                        name: 1,
+                        phone: 1,
+                        designation: 1,
+                        location: 1,
+                        dob: 1,
+                        dateOfJoining: 1,
+                        salary: 1,
+                    }
+                }
+            ]).exec((err, user) => {
+				if (err) {
+					reject({ status: 500, message: 'Internal Server Error' });
+				} else if (user){
+                    resolve({ status: 200, data:user});
+				} else {
+                    reject({ status: 404, message: 'No User found.' });
+				}
+			})
+        })
+    }
+
+const getAllUsers = () => {
+    return new Promise((resolve,reject) => {
+        UserModel.aggregate([
+            {
+                $match: {}
+            },
+            {
+                $project: {
+                    _id: 1,
+                    email: 1,
+                    name: 1,
+                    phone: 1,
+                    designation: 1,
+                    location: 1,
+                    dateOfJoining: 1,
+                    dob: 1,
+                    salary: 1
+                }
+            }
+        ]).exec((err, users) => {
+            if (err) {
+                reject({ status: 500, message: 'Internal Server Error' });
+            } else if (users) {
+                console.log("users:",users)
+                resolve({ status: 200,meassage: 'Get All Users.', data:users});
+            } else {
+                reject({ status: 404, message: 'No User found.' });
+            }
+        })
+    })
+}
 
 module.exports = {
     signup: signup,
     login: login,
+    getSingleUser : getSingleUser,
+    getAllUsers : getAllUsers
 }
 
