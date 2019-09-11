@@ -102,12 +102,13 @@ const updateLeaveByStatus = (leaveData) => {
                             if (err) {
                                 reject({ status: 500, message: "User not found." });
                             } else {
-                                let total_leave = user.total_leave - day;
+                                // let total_leave = user.total_leave - day;
                                 console.log("USER:", user)
                                 resolve({ status: 200, message: "Leave updated Sucessfully.", data: leave });
                             }
                         })
                 }
+                resolve({ status: 200, message: "Leave updated Sucessfully.", data: leave });
             }
         })
     })
@@ -187,7 +188,7 @@ const leaveUpdateByMonthAndyear = (leaveData) => {
 
 const tomorrowNotPresentUserList = (leaveDate) => {
     return new Promise((resolve, reject) => {
-        LeaveModel.find( { date: { 'year':leaveDate.year, 'month': leaveDate.month, 'date': leaveDate.date } })
+        LeaveModel.find( {'date.year':leaveDate.year, 'date.month': leaveDate.month, 'date.date': leaveDate.date, 'status': 'Approved' })
         .exec((err, leave) => {
             if (err) {
                 console.log("err:",err)

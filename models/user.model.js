@@ -5,18 +5,17 @@ const bcrypt = require('bcryptjs');
 const SALT_WORK_FACTOR = 10;
 
 const UserSchema = new mongoose.Schema({
-	
-	name: { type: String, required: true },
-	userRole: {type: String, default: 'user'},
-	email: { type: String, required: true },
-	password: { type: String, required: true },
-	dob : {type: Date},
-	designation : {type: String},
-	location : {type: String},
-	dateOfJoining : {type: Date},
-	phone : {type: Number},
-	salary : {type: Number},
-	total_leave : {type: Number}
+
+	name: { type: String },
+	email: { type: String },
+	password: { type: String },
+	profilePhoto: { type: String, default: '' },
+	dob: { type: Date },
+	designation: { type: String, default: 'user' },
+	location: { type: String },
+	dateOfJoining: { type: Date },
+	phone: { type: Number },
+	total_leave: { type: Number, default: 0 }
 });
 
 UserSchema.pre('save', function (next) {
@@ -26,10 +25,10 @@ UserSchema.pre('save', function (next) {
 		bcrypt.hash(user.password, salt, function (err, hash) {
 			if (err) return next(err);
 			user.password = hash;
-			console.log("pass:",user.password)
+			console.log("pass:", user.password)
 			next();
 		});
 	});
- });
- 
+});
+
 module.exports = mongoose.model("users", UserSchema);

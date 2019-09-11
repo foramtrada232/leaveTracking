@@ -25,7 +25,6 @@ const signup = (userData) => {
                 })
             }
         })
-
     })
 }
 
@@ -59,11 +58,11 @@ const login = (userData) => {
   /**
      * @param {object} userId wise get user details 
      */
- const getSingleUser = (userId) => {
+ const getSingleUser = (user) => {
         return new Promise((resolve, reject) => {
             UserModel.aggregate([
                 {
-                    $match: { '_id': ObjectId(userId) }
+                    $match: { 'email': user.email }
                 },
                 {
                     $project: {
@@ -122,10 +121,85 @@ const getAllUsers = () => {
     })
 }
 
+/**
+*@param {object} userData
+*Update User Service
+*/
+const updateUser = (userData) => {
+    console.log("{{{{{{{{{{{{{{{", userData)
+    return new Promise((resolve, reject) => {
+        UserModel.findOne({ name: userData.name })
+            .exec((err, foundUser) => {
+                if (err) {
+                    console.log('err==================>', err);
+                    reject({ status: 500, message: 'Internal Serevr Error' });
+                } else if (!foundUser) {
+                    User.findOneAndUpdate({ _id: userData.userId }, { $set: { userName: userData.name } }, { upsert: true, new: true }, function (err, user) {
+                        if (err) {
+                            console.log('err================>', err)
+                            reject({ status: 500, message: 'Internal Serevr Error' });
+                        } else {
+                            console.log('user======================>', user);
+                            console.log("req.file", userData.file);
+                            if (userData.file) {
+                                userData.profilePhoto = userData.fileName;
+                            } else {
+                                userData.profilePhoto = user.profilePhoto
+                            }
+                            User.findOneAndUpdate({ _id: userData.userId }, { $set: { name: userData.name, profilePhoto: userData.profilePhoto } }, { upsert: true, new: true }, function (err, user) {
+                                if (err) {
+                                    reject({ status: 500, message: 'Internal Serevr Error' });
+                                } else {
+                                    console.log("user========================>", user);
+                                    resolve({ status: 200, message: 'user data Fetched', data: user });
+                                    // res.status(200).send(user)
+                                }
+                            })
+                        }
+                    })
+                }
+                else {
+                    console.log('foundUser==================>', foundUser);
+                    if (foundUser._id == userData.userId) {
+                        console.log("======================");
+                        UserModel.findOneAndUpdate({ _id: userData.userId }, { $set: { name: userData.name } }, { upsert: true, new: true }, function (err, user) {
+                            if (err) {
+                                reject({ status: 500, message: 'Internal Serevr Error' });
+                            } else {
+                                console.log('user======================>', user);
+                                console.log("req.file", userData.file);
+                                if (userData.file) {
+                                    userData.profilePhoto = userData.fileName;
+                                } else {
+                                    userData.profilePhoto = user.profilePhoto
+                                }
+                                UserModel.findOneAndUpdate({ _id: userData.userId }, { $set: { name: userData.name, profilePhoto: userData.profilePhoto } }, { upsert: true, new: true }, function (err, user) {
+                                    if (err) {
+                                        reject({ status: 500, message: 'Internal Serevr Error' });
+                                    } else {
+                                        console.log("user========================>", user);
+                                        resolve({ status: 200, message: 'user data Fetched', data: user });
+                                    }
+                                })
+                            }
+                        })
+
+                    } else {
+                        console.log("Try other UserName")
+                        resolve({ status: 409, message: 'Try other username.....' });
+                        // res.status(409).send("Try other username.....")
+                    }
+                }
+            })
+    })
+
+}
+
 module.exports = {
     signup: signup,
     login: login,
     getSingleUser : getSingleUser,
-    getAllUsers : getAllUsers
+    getAllUsers : getAllUsers,
+    updateUser : updateUser
 }
 

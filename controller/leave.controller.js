@@ -1,5 +1,6 @@
 // Service
 const LeaveService = require('../services/LeaveService');
+const NotificationService = require('../services/NotificationService');
 
 //Model
 const UserModel = require("../models/user.model");
@@ -8,24 +9,54 @@ const UserModel = require("../models/user.model");
  * Add passport details & passport
  */
 addLeave = function (req, res) {
-    console.log('req.body=================>', req.body);
     let date = req.body.date.split("/");
-    console.log("date:", date)
     var result = date.map(Number);
-    console.log("result:", result)
-    const leaveData = {
-        date: { year: result[2], month: result[0], date: result[1] },
-        noOfDays: req.body.noOfDays,
-        reason: req.body.reason,
-        extraHours: req.body.extraHours,
-        userId: req.body.userId
-    }
-    console.log("leaveData:", leaveData)
-    LeaveService.addLeave(leaveData).then((response) => {
-        return res.status(200).json({ message: response.message, data: response.data });
-    }).catch((error) => {
-        console.log('error:', error);
-        return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
+    UserModel.findOne({'email':req.user.email}).exec((err,user) => {
+        if (err) return rea.status(500).json({ message: 'Login User not found.' })
+        else {
+            const userId = user._id;
+            const leaveData = {
+                date: { year: result[2], month: result[0], date: result[1] },
+                noOfDays: req.body.noOfDays,
+                reason: req.body.reason,
+                extraHours: req.body.extraHours,
+                userId: userId
+            }
+            console.log("REQUESTED USER:",req.user);
+            console.log("leaveData:", leaveData)
+            LeaveService.addLeave(leaveData).then((response) => {
+                UserModel.find({ designation: 'admin' }).exec((err, admin) => {
+                    if (err) return rea.status(500).json({ message: 'Admin not found.' })
+                    else {
+                        console.log("admin:", admin)
+                        // if (admin.deviceToken) {
+                        UserModel.find({ '_id': leaveData.userId }).exec((err, user) => {
+                            if (user) {
+                                console.log("user:", user)
+                                const obj = {
+                                    'to': admin[0].email,
+                                    'notification': {
+                                        title: 'Leave Notification',
+                                        body: user[0].name + ' has applied for leave.',
+                                    },
+                                    'data': {
+                                        // profilePhoto: userres.data.profilePhoto,
+                                        // userData: userres.data
+                                    }
+                                }
+                                console.log('obj============>', obj)
+                                NotificationService.sendNotification(obj);
+                            }
+                        })
+                        // }
+                    }
+                })
+                return res.status(200).json({ message: response.message, data: response.data });
+            }).catch((error) => {
+                console.log('error:', error);
+                return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
+            })
+        }
     })
 },
 
@@ -72,6 +103,43 @@ updateLeaveByStatus = function (req, res) {
         status: req.body.status
     }
     LeaveService.updateLeaveByStatus(leaveData).then((response) => {
+        console.log("RESPONSE:", response);
+        UserModel.find({ '_id': response.data.userId }).exec((err, user) => {
+            console.log("userrrr:",user)
+            if (user) {
+                if (response.data.status == 'Approved') {
+                    console.log("user:", user)
+                    const obj = {
+                        'to': user[0].email,
+                        'notification': {
+                            title: 'Leave Notification',
+                            body: 'Your leave has been approved.',
+                        },
+                        'data': {
+                            // profilePhoto: userres.data.profilePhoto,
+                            // userData: userres.data
+                        }
+                    }
+                    console.log('obj============>', obj)
+                    NotificationService.sendNotification(obj);
+                } else {
+                    const obj = {
+                        'to': user[0].email,
+                        'notification': {
+                            title: 'Leave Notification',
+                            body: 'Your leave has been rejected.',
+                        },
+                        'data': {
+                            // profilePhoto: userres.data.profilePhoto,
+                            // userData: userres.data
+                        }
+                    }
+                    console.log('obj============>', obj)
+                    NotificationService.sendNotification(obj);
+                }
+
+            }
+        })
         return res.status(200).json({ message: response.message, data: response.data });
     }).catch((error) => {
         console.log('error:', error);
@@ -139,8 +207,26 @@ tomorrowNotPresentUserList = function (req, res) {
         month: month + 1,
         date: date,
     }
-    console.log("Month:",typeof leaveDate.month);
+    console.log("Month:", typeof leaveDate.month);
     LeaveService.tomorrowNotPresentUserList(leaveDate).then((response) => {
+        console.log("response",response);
+        // UserModel.find({designation : 'admin'}).exec((err,admin) => {
+        //     if (admin) {
+        //                 const obj = {
+        //                     'to': admin[0].email,
+        //                     'notification': {
+        //                         title: 'Leave Notification',
+        //                         body: user[0].name + ' has applied for leave.',
+        //                     },
+        //                     'data': {
+        //                         // profilePhoto: userres.data.profilePhoto,
+        //                         // userData: userres.data
+        //                     }
+        //                 }
+        //                 console.log('obj============>', obj)
+        //                 NotificationService.sendNotification(obj);
+        //     }
+        // })
         return res.status(200).json({ message: response.message, data: response.data });
     }).catch((error) => {
         console.log('error:', error);
@@ -160,7 +246,7 @@ getTodayNotPresentUsers = function (req, res) {
         month: month + 1,
         date: date,
     }
-    console.log("currentDate:",typeof currentDate.year);
+    console.log("currentDate:", typeof currentDate.year);
     LeaveService.getTodayNotPresentUsers(currentDate).then((response) => {
         return res.status(200).json({ message: response.message, data: response.data });
     }).catch((error) => {
@@ -225,8 +311,8 @@ module.exports = {
     getTodayNotPresentUsers: getTodayNotPresentUsers,
     getMonthlyReportOfAllUsers: getMonthlyReportOfAllUsers,
     getYearlyReportOfAllUsers: getYearlyReportOfAllUsers,
-    leaveReasonByUserId : leaveReasonByUserId
-    
+    leaveReasonByUserId: leaveReasonByUserId
+
 
 }
 

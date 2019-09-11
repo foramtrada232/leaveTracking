@@ -2,14 +2,13 @@
 // Service
 const UserService = require('../services/UserService')
 
-module.exports = {
 
 	/** 
 	 * user sign up 
 	 */
-	signup(req, res) {
-		const userData = req.body
-		console.log("userData:,", userData)
+	signup = function (req, res) {
+		const userData = req.body;
+		console.log("userData:", userData);
 		UserService.signup(userData).then((response) => {
 			return res.status(response.status ? response.status : 200).json({ message: response.message, data: response.data });
 		}).catch((error) => {
@@ -22,7 +21,7 @@ module.exports = {
 	/** 
 	 * user login with email
 	 */
-	login(req, res) {
+	login = function (req, res) {
 		const userData = {
 			email: req.body.email,
 			password: req.body.password
@@ -38,8 +37,9 @@ module.exports = {
 /** 
  * get all user
  */
-getAllUsers (req, res) {
+getAllUsers = function (req, res) {
 	UserService.getAllUsers().then((response) => {
+		console.log("REQUESTED USER:",req.user);
 		return res.status(response.status ? response.status : 200).json({ message: response.message, data: response.data });
 	}).catch((error) => {
 		console.log('error:', error);
@@ -50,12 +50,41 @@ getAllUsers (req, res) {
 /**
  * userId wise get user details
  */
-getSingleUser(req, res) {
-	const userId = req.params.userId;
-	UserService.getSingleUser(userId).then((response) => {
+getSingleUser = function (req, res) {
+	// const userId = req.params.userId;
+	const user = req.user;
+	console.log("user:",user)
+	UserService.getSingleUser(user).then((response) => {
 		return res.status(response.status ? response.status : 200).json({ message: response.message, data: response.data })
 	}).catch((error) => {
 		return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'internal server error' });
 	})
 },
+
+/** update user */
+updateUser = function (req, res) {
+	const userData = {
+		userId: req.body.userId,
+		name: req.body.name,
+		profilePhoto: req.body.profilePhoto,
+	}
+	if (req.file) {
+		userData.fileName = req.file.filename;
+		userData.file = req.file;
+	}
+
+	UserService.updateUser(userData).then((response) => {
+		return res.status(200).json({ status: response.status, message: response.message, data: response.data });
+	}).catch((error) => {
+		console.log('error:', error);
+		return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'internal server error' });
+	})
+}
+
+module.exports = {
+	signup : signup,
+	login : login,
+	getAllUsers : getAllUsers,
+	getSingleUser : getSingleUser,
+	updateUser : updateUser
 }
