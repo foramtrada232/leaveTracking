@@ -47,7 +47,7 @@ const login = (userData) => {
                     expiresIn: 86400
                 });
                 console.log("token:", token)
-                resolve({ status: 200, message: "login successfull", token: token });
+                resolve({ status: 200, message: "login successfull", token: token,designation:user.designation });
             } else {
                 reject({ status: 404, message: 'Internal Server Error' });
             }
@@ -55,42 +55,43 @@ const login = (userData) => {
     })
 }
 
-  /**
-     * @param {object} userId wise get user details 
-     */
- const getSingleUser = (user) => {
-        return new Promise((resolve, reject) => {
-            UserModel.aggregate([
-                {
-                    $match: { 'email': user.email }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        email: 1,
-                        name: 1,
-                        phone: 1,
-                        designation: 1,
-                        location: 1,
-                        dob: 1,
-                        dateOfJoining: 1,
-                        salary: 1,
-                    }
+/**
+   * @param {object} userId wise get user details 
+   */
+const getSingleUser = (user) => {
+    return new Promise((resolve, reject) => {
+        UserModel.aggregate([
+            {
+                $match: { 'email': user.email }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    email: 1,
+                    name: 1,
+                    phone: 1,
+                    designation: 1,
+                    location: 1,
+                    dob: 1,
+                    dateOfJoining: 1,
+                    // salary: 1,
+                    profilePhoto: 1
                 }
-            ]).exec((err, user) => {
-				if (err) {
-					reject({ status: 500, message: 'Internal Server Error' });
-				} else if (user){
-                    resolve({ status: 200, data:user});
-				} else {
-                    reject({ status: 404, message: 'No User found.' });
-				}
-			})
+            }
+        ]).exec((err, user) => {
+            if (err) {
+                reject({ status: 500, message: 'Internal Server Error' });
+            } else if (user) {
+                resolve({ status: 200, data: user });
+            } else {
+                reject({ status: 404, message: 'No User found.' });
+            }
         })
-    }
+    })
+}
 
 const getAllUsers = () => {
-    return new Promise((resolve,reject) => {
+    return new Promise((resolve, reject) => {
         UserModel.aggregate([
             {
                 $match: {}
@@ -105,15 +106,15 @@ const getAllUsers = () => {
                     location: 1,
                     dateOfJoining: 1,
                     dob: 1,
-                    salary: 1
+                    profilePhoto: 1
                 }
             }
         ]).exec((err, users) => {
             if (err) {
                 reject({ status: 500, message: 'Internal Server Error' });
             } else if (users) {
-                console.log("users:",users)
-                resolve({ status: 200,meassage: 'Get All Users.', data:users});
+                console.log("users:", users)
+                resolve({ status: 200, meassage: 'Get All Users.', data: users });
             } else {
                 reject({ status: 404, message: 'No User found.' });
             }
@@ -134,7 +135,7 @@ const updateUser = (userData) => {
                     console.log('err==================>', err);
                     reject({ status: 500, message: 'Internal Serevr Error' });
                 } else if (!foundUser) {
-                    User.findOneAndUpdate({ _id: userData.userId }, { $set: { userName: userData.name } }, { upsert: true, new: true }, function (err, user) {
+                    UserModel.findOneAndUpdate({ _id: userData.userId }, { $set: { userName: userData.name } }, { upsert: true, new: true }, function (err, user) {
                         if (err) {
                             console.log('err================>', err)
                             reject({ status: 500, message: 'Internal Serevr Error' });
@@ -142,11 +143,13 @@ const updateUser = (userData) => {
                             console.log('user======================>', user);
                             console.log("req.file", userData.file);
                             if (userData.file) {
-                                userData.profilePhoto = userData.fileName;
+                                userData.profilePhoto = userData.path;
+                                console.log("path", userData.profilePhoto);
                             } else {
-                                userData.profilePhoto = user.profilePhoto
+                                userData.profilePhoto = user.profilePhoto;
+                                console.log("PATH:", userData.profilePhoto)
                             }
-                            User.findOneAndUpdate({ _id: userData.userId }, { $set: { name: userData.name, profilePhoto: userData.profilePhoto } }, { upsert: true, new: true }, function (err, user) {
+                            UserModel.findOneAndUpdate({ _id: userData.userId }, { $set: { name: userData.name, profilePhoto: userData.profilePhoto } }, { upsert: true, new: true }, function (err, user) {
                                 if (err) {
                                     reject({ status: 500, message: 'Internal Serevr Error' });
                                 } else {
@@ -157,8 +160,7 @@ const updateUser = (userData) => {
                             })
                         }
                     })
-                }
-                else {
+                } else {
                     console.log('foundUser==================>', foundUser);
                     if (foundUser._id == userData.userId) {
                         console.log("======================");
@@ -194,12 +196,50 @@ const updateUser = (userData) => {
     })
 
 }
+/**
+ * Get user by userId
+ * @param {String} userId 
+ */
+const getSingleUserById = (userId) => {
+    console.log(userId);
+    return new Promise((resolve, reject) => {
+        UserModel.aggregate([
+            {
+                $match: { '_id':ObjectId(userId) }
+            },
+            {
+                $project:{
+                    _id: 1,
+                    email: 1,
+                    name: 1,
+                    phone: 1,
+                    designation: 1,
+                    location: 1,
+                    dob: 1,
+                    dateOfJoining: 1,
+                    salary: 1,
+                    profilePhoto: 1
+                }
+            }
+        ]).exec((err, user) => {
+            if (err) {
+                reject({ status: 500, message: 'Internal Server Error' });
+            } else if (user) {
+                console.log("user=======>",user)
+                resolve({ status: 200, data: user });
+            } else {
+                reject({ status: 404, message: 'No User found.' });
+            }
+        })
+    })
+}
 
 module.exports = {
     signup: signup,
     login: login,
-    getSingleUser : getSingleUser,
-    getAllUsers : getAllUsers,
-    updateUser : updateUser
+    getSingleUser: getSingleUser,
+    getAllUsers: getAllUsers,
+    updateUser: updateUser,
+    getSingleUserById:getSingleUserById
 }
 
