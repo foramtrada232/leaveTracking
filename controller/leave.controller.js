@@ -435,7 +435,7 @@ getYearlyReportOfAllUsers = function (req, res) {
 
 /**Get leave reason of particular leave of particular user */
 leaveReasonByUserId = function (req, res) {
-            let today = new Date();
+            let today = new Date('8/20/2019');
             console.log("today:", today);
             let month = today.getMonth();
             let date = today.getDate();

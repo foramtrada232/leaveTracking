@@ -318,7 +318,7 @@ const getMonthlyReportOfAllUsers = (leaveData) => {
         // LeaveModel.find({ 'date.month': leaveData.month, 'date.year': leaveData.year })
         LeaveModel.aggregate([
             {
-                $match: { 'date.month': leaveData.month, 'date.year': leaveData.year }
+                $match: { 'date.month': leaveData.month, 'date.year': leaveData.year, 'status': "Approved" }
             },
             {
                 $lookup:{
@@ -374,7 +374,7 @@ const getYearlyReportOfAllUsers = (year) => {
         // LeaveModel.find({ 'date.year': year })
         LeaveModel.aggregate([
             {
-                $match: {  'date.year': year}
+                $match: {  'date.year': year, 'status': "Approved"}
             },
             {
                 $lookup:{

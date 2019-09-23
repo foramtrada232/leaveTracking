@@ -1,5 +1,5 @@
 const FCM = require('fcm-node')
-const serverKey = "AAAAtqBIJy4:APA91bFU97lhNn3Nv3llmUl7tJigihHUAAkvan8CcCEzaSFiU4ZxN9udNx6jQQgaL2np6d_JFMppMD_h2pkxqcubXtiwEDfupEwEXaexQXFmoiizwPD15IurWtMK_xyQOIBlpKBanfJ_";
+const serverKey = "AAAA58Ba4vA:APA91bFd-mfLLHeRQgM76Vo1b82akaITNfDQw6SK7kd3h1BQkJwKgx81zGd60ke378WJh5S2zVbpzT_7mqFOUAUmznyAgkS9QhaRdHM_4VZeyi81Z3QbIfMZBfFfBSTGJ7wZoooC6Z29";
 const fcm = new FCM(serverKey)
 
 // const message = { //this may vary according to the message type (single recipient, multicast, topic, et cetera)

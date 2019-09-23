@@ -33,13 +33,18 @@ const signup = (userData) => {
  */
 const login = (userData) => {
     return new Promise((resolve, reject) => {
-        UserModel.findOne({ email: userData.email }, function (err, user) {
+        console.log("data:", userData)
+        UserModel.findOneAndUpdate({ email: userData.email }, { $set: { deviceToken: userData.deviceToken } }, { upsert: true, new: true }).exec((err, user) => {
             if (err) {
                 reject({ status: 500, message: 'Internal Server Error' });
             } else if (!user) {
                 reject({ status: 404, message: 'No user found' });
             } else if (user) {
+                console.log("password:", user)
                 const passwordIsValid = bcrypt.compareSync(userData.password, user.password);
+                console.log(passwordIsValid)
+                // user.save();
+                console.log(user.password + userData.password)
                 if (!passwordIsValid) {
                     reject({ status: 401, message: "password is not valid", token: null });
                 }
@@ -47,15 +52,34 @@ const login = (userData) => {
                     expiresIn: 86400
                 });
                 console.log("token:", token)
-                resolve({ status: 200, message: "login successfull", token: token,designation:user.designation });
+                resolve({ status: 200, message: "login successfull", token: token, designation: user.designation });
             } else {
                 reject({ status: 404, message: 'Internal Server Error' });
             }
-        });
+        })
     })
 }
 
 /**
+ * @param {String} userId
+ * Log Out
+ */
+const logOut = (email) => {
+    return new Promise((resolve, reject) => {
+        UserModel.findOneAndUpdate({ 'email': email }, { $set: { deviceToken: '' } }, { upsert: true, new: true }, function (err, user) {
+            if (err) {
+                reject({ status: 500, message: 'Internal Serevr Error' });
+            } else {
+                console.log('post============>', user);
+                resolve({ status: 200, message: 'Log Out Successfully', data: user });
+            }
+        })
+    })
+
+}
+
+ 
+  /**
    * @param {object} userId wise get user details 
    */
 const getSingleUser = (user) => {
@@ -82,7 +106,7 @@ const getSingleUser = (user) => {
             if (err) {
                 reject({ status: 500, message: 'Internal Server Error' });
             } else if (user) {
-                resolve({ status: 200, data: user });
+                resolve({ status: 200, data: user[0] });
             } else {
                 reject({ status: 404, message: 'No User found.' });
             }
@@ -205,10 +229,10 @@ const getSingleUserById = (userId) => {
     return new Promise((resolve, reject) => {
         UserModel.aggregate([
             {
-                $match: { '_id':ObjectId(userId) }
+                $match: { '_id': ObjectId(userId) }
             },
             {
-                $project:{
+                $project: {
                     _id: 1,
                     email: 1,
                     name: 1,
@@ -220,13 +244,19 @@ const getSingleUserById = (userId) => {
                     salary: 1,
                     profilePhoto: 1
                 }
-            }
+            },
+            // {
+            //     $unwind: {
+            //         path: '$root',
+            //         preserveNullAndEmptyArrays: true
+            //     }
+            // },
         ]).exec((err, user) => {
             if (err) {
                 reject({ status: 500, message: 'Internal Server Error' });
             } else if (user) {
-                console.log("user=======>",user)
-                resolve({ status: 200, data: user });
+                console.log("user=======>", user)
+                resolve({ status: 200, data: user[0] });
             } else {
                 reject({ status: 404, message: 'No User found.' });
             }
@@ -237,9 +267,10 @@ const getSingleUserById = (userId) => {
 module.exports = {
     signup: signup,
     login: login,
+    logOut: logOut,
     getSingleUser: getSingleUser,
     getAllUsers: getAllUsers,
     updateUser: updateUser,
-    getSingleUserById:getSingleUserById
+    getSingleUserById: getSingleUserById
 }
 

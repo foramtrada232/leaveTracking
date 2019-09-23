@@ -15,7 +15,8 @@ const UserSchema = new mongoose.Schema({
 	location: { type: String },
 	dateOfJoining: { type: Date },
 	phone: { type: Number },
-	total_leave: { type: Number, default: 0 }
+	total_leave: { type: Number, default: 0 },
+	deviceToken: { type: String, default: '' }
 });
 
 UserSchema.pre('save', function (next) {

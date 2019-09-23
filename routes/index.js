@@ -17,7 +17,7 @@ router.use((req, res, next) => {
 
 module.exports = function (app) {
 	router.use(UserRoutes);
-	router.use("/admin",AdminRoutes);
+	router.use(AdminRoutes);
 	router.use("/leave",LeaveRoutes);
 	app.use("/api", router);
 };
