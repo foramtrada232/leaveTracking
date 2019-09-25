@@ -28,14 +28,14 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
 }
 
 const app = express();
-const server = http.createServer(app);
+// const server = http.createServer(app);
 
-// var privateKey = fs.readFileSync('/var/www/html/LeaveTracking/ssl/key.pem');
-// var certificate = fs.readFileSync('/var/www/html/LeaveTracking/ssl/server.crt');
-// var credentials = { key: privateKey, cert: certificate };
-// const secureServer = https.createServer(credentials, app);
-// secureServer.listen(process.env.PORT);
-// console.log(`Server started on Port ${process.env.PORT}`);
+var privateKey = fs.readFileSync('/var/www/html/LeaveTracking/ssl/key.pem');
+var certificate = fs.readFileSync('/var/www/html/LeaveTracking/ssl/server.crt');
+var credentials = { key: privateKey, cert: certificate };
+const secureServer = https.createServer(credentials, app);
+secureServer.listen(process.env.PORT);
+console.log(`Server started on Port ${process.env.PORT}`);
 
 
 
@@ -102,6 +102,6 @@ Database.config(
 	},
 );
 
-server.listen(process.env.PORT || 3000);
-console.log(`Server started on port ${process.env.PORT}`);
+// server.listen(process.env.PORT || 3000);
+// console.log(`Server started on port ${process.env.PORT}`);
 module.exports = app;
