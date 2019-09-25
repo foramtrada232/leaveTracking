@@ -7,20 +7,10 @@
     "lint": "eslint ./ --fix",
     "start": "node app"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/AkibDeraiya123/Node-boilerplate-with-express.git"
-  },
   "keywords": [
     "Node-boilerplate",
     "Express"
   ],
-  "author": "Akib Deraiya",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/AkibDeraiya123/Node-boilerplate-with-express/issues"
-  },
-  "homepage": "https://github.com/AkibDeraiya123/Node-boilerplate-with-express#readme",
   "dependencies": {
     "bcrypt": "^2.0.1",
     "bcryptjs": "^2.4.3",
