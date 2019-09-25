@@ -25,3 +25,5 @@ router.post("/get-yearly-report",LeaveController.getYearlyReportOfAllUsers);
 router.post("/leaveReason-by-userId",LeaveController.leaveReasonByUserId);
 
 module.exports = router;
+
+

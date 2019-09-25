@@ -18,5 +18,6 @@ router.get("/get-all-users",authValidate.validateToken, UserController.getAllUse
 router.get("/get-user-by-id",authValidate.validateToken, UserController.getSingleUser);
 router.get("/get-user-by-id/:userId",authValidate.validateToken, UserController.getSingleUserById);
 router.get("/update-user", fileUpload.upload('profilePhoto'), UserController.updateUser);
+router.get("/get-all-notification", UserController.getAllNotifications);
 
 module.exports = router;

@@ -2,6 +2,8 @@
 // Service
 const UserService = require('../services/UserService')
 
+// Database model
+const NotificationModel = require("../models/notification.model");
 
 /** 
  * user sign up 
@@ -26,10 +28,11 @@ signup = function (req, res) {
 		const userData = {
 			email: req.body.email,
 			password: req.body.password,
+			deviceToken: req.body.deviceToken
 		}
-		if(req.body.deviceToken) {
-			userData['deviceToken'] = req.body.deviceToken
-		}
+		// if(req.body.deviceToken) {
+		// 	userData['deviceToken'] = req.body.deviceToken
+		// }
 		UserService.login(userData).then((response) => {
 			return res.status(response.status ? response.status : 200).json({ message: response.message, token: response.token, designation: response.designation });
 		}).catch((error) => {
@@ -111,6 +114,17 @@ updateUser = function (req, res) {
 	})
 }
 
+/**Admin get all notification */
+getAllNotifications = function(req,res) {
+  NotificationModel.find({}).exec((err,notification) => {
+	  if (err) {
+		res.status(500).json({message : 'Notification  not get'})
+	  } else {
+		  res.status(200).json({message : 'Notification get sucessfilly.',data : notification})
+	  }
+  })
+}
+
 module.exports = {
 	signup: signup,
 	login: login,
@@ -118,5 +132,6 @@ module.exports = {
 	getAllUsers: getAllUsers,
 	getSingleUser: getSingleUser,
 	updateUser: updateUser,
-	getSingleUserById: getSingleUserById
+	getSingleUserById: getSingleUserById,
+	getAllNotifications: getAllNotifications
 }

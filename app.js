@@ -7,6 +7,9 @@ const bodyParser = require("body-parser");
 const expressSession = require("express-session");
 const expressValidator = require("express-validator");
 const cookieParser = require("cookie-parser");
+const cors = require('cors');
+const fs = require('fs');
+const https = require('https');
 
 // Created Modules
 const config = require("./config");
@@ -25,7 +28,16 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
 }
 
 const app = express();
-const server = http.createServer(app);
+// const server = http.createServer(app);
+
+var privateKey = fs.readFileSync('/var/www/html/LeaveTracking/ssl/key.pem');
+var certificate = fs.readFileSync('/var/www/html/LeaveTracking/ssl/server.crt');
+var credentials = { key: privateKey, cert: certificate };
+const secureServer = https.createServer(credentials, app);
+secureServer.listen(process.env.PORT);
+console.log(`Server started on Port ${process.env.PORT}`);
+
+
 
 app.use(expressSession({
 	secret: "1231sdf65s6df4",
@@ -35,11 +47,11 @@ app.use(expressSession({
 	},
 }));
 
+app.use(cors());
 app.use(logger("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(expressValidator());
-
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -90,6 +102,6 @@ Database.config(
 	},
 );
 
-server.listen(process.env.PORT);
-console.log(`Server started on port ${process.env.PORT}`);
+// server.listen(process.env.PORT);
+// console.log(`Server started on port ${process.env.PORT}`);
 module.exports = app;

@@ -420,6 +420,7 @@ const getYearlyReportOfAllUsers = (year) => {
             })
     })
 }
+
 /**
  * @param {object} leaveData 
  * wise get leave reason*/

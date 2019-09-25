@@ -114,6 +114,7 @@ const getSingleUser = (user) => {
     })
 }
 
+/** Get All users */
 const getAllUsers = () => {
     return new Promise((resolve, reject) => {
         UserModel.aggregate([
@@ -151,7 +152,6 @@ const getAllUsers = () => {
 *Update User Service
 */
 const updateUser = (userData) => {
-    console.log("{{{{{{{{{{{{{{{", userData)
     return new Promise((resolve, reject) => {
         UserModel.findOne({ name: userData.name })
             .exec((err, foundUser) => {
