@@ -9,7 +9,7 @@ const LeaveSchema = new mongoose.Schema({
 	date: {type:Object,required: true},
 	noOfDays: {type:Number,required: true},
     reason: { type: String, required: true },
-    extraHours: {type: Number},
+    extraHours: {type: String},
     status: {type: String, default:'pending'}
 });
 

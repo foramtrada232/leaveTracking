@@ -2,6 +2,9 @@
 const LeaveModel = require("../models/leave.model");
 const UserModel = require("../models/user.model");
 
+//service
+const NotificationService = require('../services/NotificationService');
+
 const _ = require('lodash');
 const ObjectId = require('mongodb').ObjectId;
 /**
@@ -18,6 +21,18 @@ const addLeave = (leaveData) => {
                 } else {
                     console.log("user:", user);
                     if (leave.noOfDays > user.total_leave) {
+                        const obj = {
+                                    'to': user.deviceToken,
+                                    'notification': {
+                                        title: 'Leave Application',
+                                        body: user.name + 'your 18 leave is completed.',
+                                    },
+                                    'data': {
+                                        // userData:user
+                                    }
+                                }
+                                console.log('obj============>', obj)
+                                NotificationService.sendNotification(obj);
                         console.log("warning");
                     } else {
                         console.log("No warning");
@@ -199,7 +214,7 @@ const updateLeaveByStatus = (leaveData) => {
 const getLeaveByMonthAndUserId = (leaveData) => {
     return new Promise((resolve, reject) => {
         console.log("leaveData:", leaveData)
-        LeaveModel.find({ 'userId': leaveData.userId, 'date.month': leaveData.month, 'date.year': leaveData.year }).exec((err, leave) => {
+        LeaveModel.find({ 'userId': leaveData.userId, 'date.month': leaveData.month, 'date.year': leaveData.year,'status': "Approved" }).exec((err, leave) => {
             if (err) {
                 reject({ status: 500, message: "Leave not updated." });
             } else {
@@ -214,7 +229,7 @@ const getLeaveByMonthAndUserId = (leaveData) => {
 const getLeavesByYearAndUserId = (leaveData) => {
     return new Promise((resolve, reject) => {
         console.log("leaveData:", leaveData)
-        LeaveModel.find({ 'userId': leaveData.userId, 'date.year': leaveData.year }).exec((err, leave) => {
+        LeaveModel.find({ 'userId': leaveData.userId, 'date.year': leaveData.year,'status': "Approved" }).exec((err, leave) => {
             if (err) {
                 reject({ status: 500, message: "Leave not found." });
             } else {
@@ -225,30 +240,13 @@ const getLeavesByYearAndUserId = (leaveData) => {
     })
 }
 
-/**Tomorrow not present user's list */
-const tomorrowNotPresentUserList = (leaveDate) => {
-    return new Promise((resolve, reject) => {
-        LeaveModel.find({ 'date.year': leaveDate.year, 'date.month': leaveDate.month, 'date.date': leaveDate.date, 'status': 'Approved' })
-            .exec((err, leave) => {
-                if (err) {
-                    console.log("err:", err)
-                    reject({ status: 500, message: "Leave not found." });
-                } else if (leave) {
-                    console.log("leave:", leave);
-                    resolve({ status: 200, message: "Leave found.", data: leave });
-                } else {
-                    reject({ status: 500, message: "Leave not found." });
-                }
-            })
-    })
-}
 
 /**
  * @param {object} currentDate 
  * today absent user's list*/
 const getTodayNotPresentUsers = (currentDate) => {
     return new Promise((resolve, reject) => {
-        console.log("currentDate:", currentDate.year);
+        console.log("currentDate:", currentDate);
         LeaveModel.find({ date: { 'year': currentDate.year, 'month': currentDate.month, 'date': currentDate.date }, status: 'Approved' })
             .exec((err, leave) => {
                 if (err) {
@@ -314,8 +312,7 @@ const getTodayNotPresentUsers = (currentDate) => {
  * wise get report of all user's */
 const getMonthlyReportOfAllUsers = (leaveData) => {
     return new Promise((resolve, reject) => {
-        console.log("month", leaveData);
-        // LeaveModel.find({ 'date.month': leaveData.month, 'date.year': leaveData.year })
+        console.log("month match thay che ke nai ====????????", leaveData);
         LeaveModel.aggregate([
             {
                 $match: { 'date.month': leaveData.month, 'date.year': leaveData.year, 'status': "Approved" }
@@ -451,7 +448,7 @@ module.exports = {
     getLeaveByMonthAndUserId: getLeaveByMonthAndUserId,
     getLeavesByYearAndUserId: getLeavesByYearAndUserId,
     // leaveUpdateByMonthAndyear : leaveUpdateByMonthAndyear,
-    tomorrowNotPresentUserList: tomorrowNotPresentUserList,
+    // tomorrowNotPresentUserList: tomorrowNotPresentUserList,
     getTodayNotPresentUsers: getTodayNotPresentUsers,
     getMonthlyReportOfAllUsers: getMonthlyReportOfAllUsers,
     getYearlyReportOfAllUsers: getYearlyReportOfAllUsers,

@@ -30,8 +30,8 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
 const app = express();
 // const server = http.createServer(app);
 
-var privateKey = fs.readFileSync('/var/www/html/LeaveTracking/ssl/key.pem');
-var certificate = fs.readFileSync('/var/www/html/LeaveTracking/ssl/server.crt');
+var privateKey = fs.readFileSync('/var/www/html/leaveTracking/ssl/privkey1.pem');
+var certificate = fs.readFileSync('/var/www/html/leaveTracking/ssl/fullchain1.pem');
 var credentials = { key: privateKey, cert: certificate };
 const secureServer = https.createServer(credentials, app);
 secureServer.listen(process.env.PORT);

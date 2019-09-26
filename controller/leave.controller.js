@@ -5,6 +5,7 @@ var cron = require('node-cron');
 
 //Model
 const UserModel = require("../models/user.model");
+const LeaveModel = require("../models/leave.model");
 
 /**
  * user add leave
@@ -24,14 +25,16 @@ addLeave = function (req, res) {
         else {
             console.log("in else==========>", req.body)
             const userId = user._id;
-            if (req.body.extraHours) {
+            if (req.body.extraHours && req.body.noOfDays) {
                 console.log("HOURS:", req.body.extraHours);
                 noOfHours = req.body.noOfDays * 8 - req.body.extraHours;
                 console.log("noOfHours:", noOfHours)
-            } else {
+            } else if(req.body.noOfDays){
                 console.log("req.body==in else======>", req.body.noOfDays);
                 noOfHours = req.body.noOfDays * 8;
                 console.log("noOfHours:", noOfHours)
+            } else {
+            	noOfHours =req.body.noOfHours;
             }
             const leaveData = {
                 date: { year: result[0], month: result[1], date: result[2] },
@@ -52,7 +55,7 @@ addLeave = function (req, res) {
                             if (user) {
                                 console.log("user:", user)
                                 const obj = {
-                                    'to': admin[1].deviceToken,
+                                    'to': admin[0].deviceToken,
                                     'notification': {
                                         title: 'Leave Application',
                                         body: user[0].name + ' has applied for leave.',
@@ -177,8 +180,8 @@ getLeaveByMonthAndUserId = function (req, res) {
             const userId = user._id;
             const leaveData = {
                 userId: userId,
-                month: Number(req.body.month),
-                year: Number(req.body.year)
+                month: req.body.month,
+                year: req.body.year
             }
             console.log("LEAVEDATA:", leaveData)
             LeaveService.getLeaveByMonthAndUserId(leaveData).then((response) => {
@@ -200,7 +203,7 @@ getLeavesByYearAndUserId = function (req, res) {
             const userId = user._id;
             const leaveData = {
                 userId: userId,
-                year: Number(req.body.year)
+                year: req.body.year
             }
             LeaveService.getLeavesByYearAndUserId(leaveData).then((response) => {
                 return res.status(200).json({ message: response.message, data: response.data });
@@ -271,55 +274,64 @@ cron.schedule('0 0 0 1 1-12 * ', leaveUpdateByMonthAndyear = () => {
 })
 
 /** Get Tomorrow not present user's list and send notification to admin */
-tomorrowNotPresentUserList = function (req, res) {
-    const userId = [];
-    var userName = [];
-    let nextDay = new Date();
-    nextDay.setDate(nextDay.getDate() + 1);
-    console.log("date:", nextDay);
-    let month = nextDay.getMonth();
-    let date = nextDay.getDate();
-    let year = nextDay.getFullYear();
-    console.log("DATE:", date);
-    const leaveDate = {
-        year: year,
-        month: month + 1,
-        date: date,
-    }
-    console.log("Month:", typeof leaveDate.month);
-    LeaveService.tomorrowNotPresentUserList(leaveDate).then((response) => {
-        console.log("response", response);
-        response.data.forEach(function (resp) {
-            userId.push(resp.userId);
-            console.log("resp:", resp)
-        });
-        console.log(userId)
-        UserModel.find({'_id' : userId}).exec((err,users) => {
-            if (users) {
-                users.forEach(function (user) {
-                    userName.push(user.name);
-                });
-            }
-            console.log("USERNAME:",userName)
-        UserModel.find({ designation: 'Admin' }).exec((err, admin) => {
-            if (admin) {
-                const obj = {
-                    'to': admin[0].deviceToken,
-                    'notification': {
-                        title: 'Tomorrow Absent user',
-                        body: userName + ' are absent Tomorrow.',
-                    },
+cron.schedule('0 0 11 1-31 1-12 * ', tomorrowNotPresentUserList = () => {
+    return new Promise((resolve, reject) => {
+        const userId = [];
+        var userName = [];
+        let nextDay = new Date();
+        nextDay.setDate(nextDay.getDate() + 1);
+        console.log("date:", nextDay);
+        let month = nextDay.getMonth();
+        let date = nextDay.getDate();
+        let year = nextDay.getFullYear();
+        console.log("DATE:", date);
+        const leaveDate = {
+            year: year,
+            month: month + 1,
+            date: date,
+        }
+        console.log("Month:", typeof leaveDate.month);
+        LeaveModel.find({ 'date.year': leaveDate.year, 'date.month': leaveDate.month, 'date.date': leaveDate.date, 'status': 'Approved' })
+            .exec((err, leave) => {
+                if (err) {
+                    console.log("err:", err)
+                    reject({ status: 500, message: "Leave not found." });
+                } else if (leave) {
+                    console.log("leave:", leave);
+                    resolve({ status: 200, message: "Leave found.", data: leave });
+                } else {
+                    reject({ status: 500, message: "Leave not found." });
                 }
-                NotificationService.sendNotification(obj);
-            }
-        })
+                leave.forEach(function (resp) {
+                    userId.push(resp.userId);
+                    console.log("resp:", resp)
+                });
+
+                console.log(userId)
+                UserModel.find({ '_id': userId }).exec((err, users) => {
+                    if (users) {
+                        users.forEach(function (user) {
+                            userName.push(user.name);
+                        });
+                    }
+                    console.log("USERNAME:", userName)
+                    UserModel.find({ designation: 'Admin' }).exec((err, admin) => {
+                        if (admin) {
+                            const obj = {
+                                'to': admin[0].deviceToken,
+                                'notification': {
+                                    title: 'Tomorrow Absent user',
+                                    body: userName + ' are absent Tomorrow.',
+                                },
+                            }
+                            NotificationService.sendNotification(obj);
+                        }
+                    })
+                })
+                resolve({ status: 200, message: "Leave found.", data: leave });
+            })
     })
-        return res.status(200).json({ message: response.message, data: response.data });
-    }).catch((error) => {
-        console.log('error:', error);
-        return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
-    })
-}
+})
 
 /**Get list of today not present users */
 getTodayNotPresentUsers = function (req, res) {
@@ -345,11 +357,11 @@ getTodayNotPresentUsers = function (req, res) {
 
 /**Get monthly leave report of all users */
 getMonthlyReportOfAllUsers = function (req, res) {
-    console.log("body", req.body)
+    console.log("admin panel details ====", req.body)
     let month = Number(req.body.month);
     const leaveData = {
-        month: Number(req.body.month),
-        year: Number(req.body.year)
+        month: req.body.month,
+        year: req.body.year
     }
     console.log("LEAVEDATA:", leaveData)
     LeaveService.getMonthlyReportOfAllUsers(leaveData).then((response) => {
@@ -362,7 +374,7 @@ getMonthlyReportOfAllUsers = function (req, res) {
 
 /**Get yearly leave report of all user's */
 getYearlyReportOfAllUsers = function (req, res) {
-    let year = Number(req.body.year);
+    let year = req.body.year;
     LeaveService.getYearlyReportOfAllUsers(year).then((response) => {
         return res.status(200).json({ message: response.message, data: response.data });
     }).catch((error) => {
