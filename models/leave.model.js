@@ -7,7 +7,8 @@ const LeaveSchema = new mongoose.Schema({
 
     userId : { type: Schema.Types.ObjectId, ref: 'User' },
 	date: {type:Object,required: true},
-	noOfDays: {type:Number,required: true},
+    noOfDays: {type:Number},
+    shortLeave: {type:Number},
     reason: { type: String, required: true },
     extraHours: {type: String},
     status: {type: String, default:'pending'}

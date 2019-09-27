@@ -98,7 +98,7 @@ const getSingleUser = (user) => {
                     location: 1,
                     dob: 1,
                     dateOfJoining: 1,
-                    // salary: 1,
+                    total_leave: 1,
                     profilePhoto: 1
                 }
             }
@@ -131,7 +131,8 @@ const getAllUsers = () => {
                     location: 1,
                     dateOfJoining: 1,
                     dob: 1,
-                    profilePhoto: 1
+                    profilePhoto: 1,
+                    total_leave: 1
                 }
             }
         ]).exec((err, users) => {
@@ -242,7 +243,8 @@ const getSingleUserById = (userId) => {
                     dob: 1,
                     dateOfJoining: 1,
                     salary: 1,
-                    profilePhoto: 1
+                    profilePhoto: 1,
+                    total_leave: 1
                 }
             },
             // {

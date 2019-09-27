@@ -23,6 +23,7 @@ router.get("/get-today-not-present-users",LeaveController.getTodayNotPresentUser
 router.post("/get-monthly-report",LeaveController.getMonthlyReportOfAllUsers);
 router.post("/get-yearly-report",LeaveController.getYearlyReportOfAllUsers);
 router.post("/leaveReason-by-userId",LeaveController.leaveReasonByUserId);
+router.put("/edit-leave-by-userId",LeaveController.editLeaveByAdmin);
 
 module.exports = router;
 

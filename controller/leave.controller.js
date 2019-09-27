@@ -23,18 +23,26 @@ addLeave = function (req, res) {
     UserModel.findOne({ 'email': req.user.email }).exec((err, user) => {
         if (err) return rea.status(500).json({ message: 'Login User not found.' })
         else {
-            console.log("in else==========>", req.body)
+            if (user.total_leave > 112) {
+                const leave = user.total_leave / 8;
+                const totalLeave = Math.round(leave)
+                const obj = {
+                    'to': user.deviceToken,
+                    'notification': {
+                        title: 'Leave Application',
+                        body: user.name + ',Your '+totalLeave+' days leave completed.',
+                    },
+                }
+                console.log('obj============>', obj)
+                NotificationService.sendNotification(obj);
+            }
             const userId = user._id;
-            if (req.body.extraHours && req.body.noOfDays) {
-                console.log("HOURS:", req.body.extraHours);
-                noOfHours = req.body.noOfDays * 8 - req.body.extraHours;
-                console.log("noOfHours:", noOfHours)
-            } else if(req.body.noOfDays){
+             if(req.body.noOfDays){
                 console.log("req.body==in else======>", req.body.noOfDays);
-                noOfHours = req.body.noOfDays * 8;
+                noOfDays = req.body.noOfDays * 8;
                 console.log("noOfHours:", noOfHours)
-            } else {
-            	noOfHours =req.body.noOfHours;
+            } else if (req.body.shortLeave){
+            	noOfHours = req.body.noOfHours;
             }
             const leaveData = {
                 date: { year: result[0], month: result[1], date: result[2] },
@@ -50,7 +58,6 @@ addLeave = function (req, res) {
                     if (err) return rea.status(500).json({ message: 'Admin not found.' })
                     else {
                         console.log("admin:", admin)
-                        // if (admin.deviceToken) {
                         UserModel.find({ '_id': leaveData.userId }).exec((err, user) => {
                             if (user) {
                                 console.log("user:", user)
@@ -60,15 +67,11 @@ addLeave = function (req, res) {
                                         title: 'Leave Application',
                                         body: user[0].name + ' has applied for leave.',
                                     },
-                                    'data': {
-                                        // userData:user
-                                    }
                                 }
                                 console.log('obj============>', obj)
                                 NotificationService.sendNotification(obj);
                             }
                         })
-                        // }
                     }
                 })
                 return res.status(200).json({ message: response.message, data: response.data });
@@ -80,7 +83,7 @@ addLeave = function (req, res) {
     })
 },
 
-    // get pending leave
+    /**get pending leave */
     getPendingLeaves = function (req, res) {
         LeaveService.getPendingLeaves().then((response) => {
             return res.status(200).json({ message: response.message, data: response.data });
@@ -405,6 +408,19 @@ leaveReasonByUserId = function (req, res) {
     })
 }
 
+/**Leave Edit by admin */
+editLeaveByAdmin = function(req,res) {
+   const leaveData = {userId : req.body.userId}
+    if (req.body.total_leave) { leaveData['total_leave'] = Number(req.body.total_leave)}
+    console.log("leaveData:",leaveData)
+    LeaveService.editLeaveByAdmin(leaveData).then((response) => {
+        return res.status(response.status ? response.status : 200).json({ message: response.message, data: response.data });
+    }).catch((error) => {
+        console.log('error:', error);
+        return res.status({ status: 500 }).json({ message: error.message ? error.message : 'internal server error' });
+    })
+}
+
 module.exports = {
 
     addLeave: addLeave,
@@ -420,6 +436,7 @@ module.exports = {
     getTodayNotPresentUsers: getTodayNotPresentUsers,
     getMonthlyReportOfAllUsers: getMonthlyReportOfAllUsers,
     getYearlyReportOfAllUsers: getYearlyReportOfAllUsers,
-    leaveReasonByUserId: leaveReasonByUserId
+    leaveReasonByUserId: leaveReasonByUserId,
+    editLeaveByAdmin: editLeaveByAdmin
 
 }
