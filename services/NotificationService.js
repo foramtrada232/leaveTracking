@@ -24,20 +24,23 @@ module.exports.sendNotification = (message) => {
             console.log("Something has gone wrong!", err)
         } else {
             if (message.notification.title == "Tomorrow Absent user" || "Leave Application") {
-                var today = new Date();
-                var h = today.getHours();
-                var m = today.getMinutes();
+                console.log("==============if calling=============")
+                let today = new Date();
+                let date = today.getFullYear()+'-' + (today.getMonth()+1) + '-'+today.getDate();
+                let h = today.getHours();
+                let m = today.getMinutes();
                 message.notification['createdTime'] = h + ":" + m;
+                message.notification['createdAt'] = date;
                 NotificationModel.create(message.notification).then((user) => {
-                    console.log(user)
-                    // res.status(201).json({message: "Notification created successfully." });
+                    console.log("Notificatoin data",user);
                 }).catch((error) => {
                     console.log("error: ", error);
-                    // res.status(500).json( {message: "Notification not created." });
                 })
             }
             console.log("Successfully sent with response: ", response)
         }
     })
-
 }
+
+
+

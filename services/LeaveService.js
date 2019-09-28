@@ -68,6 +68,7 @@ const getPendingLeaves = () => {
                 tasks: 1,
                 date: 1,
                 noOfDays: 1,
+                shortLeave: 1,
                 reason: 1,
                 extraHours: 1,
                 userId: {
@@ -94,14 +95,17 @@ const getPendingLeaves = () => {
                 preserveNullAndEmptyArrays: true
             }
         },
-        ])
-            .exec((err, resp) => {
-                if (err) {
-                    reject({ status: 500, message: "Pending Leave not found" });
-                } else {
-                    resolve({ status: 200, message: "Get Leave Sucessfully.", data: resp });
-                }
-            })
+        {
+            $sort: { 'date.year': 1, 'date.month': 1, 'date.date': 1 }
+        },
+        ]).exec((err, resp) => {
+            if (err) {
+                console.log("err:", err)
+                reject({ status: 500, message: "Pending Leave not found" });
+            } else {
+                resolve({ status: 200, message: "Get Leave Sucessfully.", data: resp });
+            }
+        })
     })
 }
 
@@ -127,6 +131,7 @@ const getApprovedLeaves = () => {
                     tasks: 1,
                     date: 1,
                     noOfDays: 1,
+                    shortLeave: 1,
                     reason: 1,
                     extraHours: 1,
                     userId: {
@@ -134,6 +139,9 @@ const getApprovedLeaves = () => {
                         total_leave: '$userId.total_leave'
                     }
                 }
+            },
+            {
+                $sort: { 'date.year': 1, 'date.month': 1, 'date.date': 1 }
             },
             {
                 $unwind: {
@@ -153,29 +161,34 @@ const getApprovedLeaves = () => {
                     preserveNullAndEmptyArrays: true
                 }
             },
-        ])
-            .exec((err, resp) => {
-                if (err) {
-                    reject({ status: 500, message: "Approved Leaves not found" });
-                } else {
-                    resolve({ status: 200, message: "Get Leaves Sucessfully.", data: resp });
-                }
-            })
+        ]).exec((err, resp) => {
+            if (err) {
+                reject({ status: 500, message: "Approved Leaves not found" });
+            } else {
+                resolve({ status: 200, message: "Get Leaves Sucessfully.", data: resp });
+            }
+        })
     })
 }
 
 /**Admin get all user's leaves */
 const getAllLeaves = () => {
     return new Promise((resolve, reject) => {
-        LeaveModel.find({})
-            .exec((err, respond) => {
-                if (err) {
-                    console.log("error", err);
-                    reject({ status: 500, message: "No Leave Found." });
-                } else {
-                    resolve({ status: 200, message: "Get Leave Sucessfully.", data: respond });
-                }
-            })
+        LeaveModel.aggregate([
+            {
+                $match: {}
+            },
+            {
+                $sort: { 'date.year': 1, 'date.month': 1, 'date.date': 1 }
+            },
+        ]).exec((err, respond) => {
+            if (err) {
+                console.log("error", err);
+                reject({ status: 500, message: "No Leave Found." });
+            } else {
+                resolve({ status: 200, message: "Get Leave Sucessfully.", data: respond });
+            }
+        })
     })
 }
 
@@ -204,10 +217,10 @@ const updateLeaveByStatus = (leaveData) => {
                 reject({ status: 500, message: "Leave not updated." });
             } else {
                 if (leave.status == "Approved") {
-                    if(leave.noOfDays){
-                     day = Number(leave.noOfDays);
-                    } else if(leave.shortLeave){
-                         day = Number(leave.shortLeave)
+                    if (leave.noOfDays) {
+                        day = Number(leave.noOfDays);
+                    } else if (leave.shortLeave) {
+                        day = Number(leave.shortLeave)
                     }
                     console.log("day:", day)
                     UserModel.findOneAndUpdate({ '_id': leave.userId }, { $inc: { total_leave: - day } })
@@ -233,7 +246,14 @@ const updateLeaveByStatus = (leaveData) => {
 const getLeaveByMonthAndUserId = (leaveData) => {
     return new Promise((resolve, reject) => {
         console.log("leaveData:", leaveData)
-        LeaveModel.find({ 'userId': leaveData.userId, 'date.month': leaveData.month, 'date.year': leaveData.year, 'status': "Approved" }).exec((err, leave) => {
+        LeaveModel.aggregate([ 
+            {
+                $match : {'userId': leaveData.userId, 'date.month': leaveData.month, 'date.year': leaveData.year, 'status': "Approved"}
+            },
+            {
+                $sort: { 'date.year': 1, 'date.month': 1, 'date.date': 1 }
+            }
+        ]).exec((err, leave) => {
             if (err) {
                 reject({ status: 500, message: "Leave not updated." });
             } else {
@@ -248,8 +268,16 @@ const getLeaveByMonthAndUserId = (leaveData) => {
 const getLeavesByYearAndUserId = (leaveData) => {
     return new Promise((resolve, reject) => {
         console.log("leaveData:", leaveData)
-        LeaveModel.find({ 'userId': leaveData.userId, 'date.year': leaveData.year, 'status': "Approved" }).exec((err, leave) => {
+        LeaveModel.aggregate([
+            {
+                $match: { 'userId': leaveData.userId, 'date.year': leaveData.year, 'status': "Approved" }
+            },
+            {
+                $sort: { 'date.year': 1, 'date.month': 1, 'date.date': 1 }
+            }
+        ]).exec((err, leave) => {
             if (err) {
+                console.log("err:", err)
                 reject({ status: 500, message: "Leave not found." });
             } else {
                 console.log("LEAVE:", leave)
@@ -350,11 +378,15 @@ const getMonthlyReportOfAllUsers = (leaveData) => {
                     status: 1,
                     date: 1,
                     noOfDays: 1,
+                    shortLeave: 1,
                     reason: 1,
                     userId: {
                         name: '$userId.name',
                     }
                 }
+            },
+            {
+                $sort: { 'date.year': 1, 'date.month': 1, 'date.date': 1 }
             },
             {
                 $unwind: {
@@ -368,16 +400,15 @@ const getMonthlyReportOfAllUsers = (leaveData) => {
                     preserveNullAndEmptyArrays: true
                 }
             },
-        ])
-            .exec((err, report) => {
-                if (err) {
-                    console.log("err:", err)
-                    reject({ status: 500, message: "Report not found." });
-                } else {
-                    console.log("report:", report);
-                    resolve({ status: 200, message: "Report found Sucessfully.", data: report });
-                }
-            })
+        ]).exec((err, report) => {
+            if (err) {
+                console.log("err:", err)
+                reject({ status: 500, message: "Report not found." });
+            } else {
+                console.log("report:", report);
+                resolve({ status: 200, message: "Report found Sucessfully.", data: report });
+            }
+        })
     })
 }
 
@@ -406,11 +437,15 @@ const getYearlyReportOfAllUsers = (year) => {
                     status: 1,
                     date: 1,
                     noOfDays: 1,
+                    shortLeave: 1,
                     reason: 1,
                     userId: {
                         name: '$userId.name',
                     }
                 }
+            },
+            {
+                $sort: { 'date.year': 1, 'date.month': 1, 'date.date': 1 }
             },
             {
                 $unwind: {
@@ -424,16 +459,15 @@ const getYearlyReportOfAllUsers = (year) => {
                     preserveNullAndEmptyArrays: true
                 }
             },
-        ])
-            .exec((err, report) => {
-                if (err) {
-                    console.log("err:", err)
-                    reject({ status: 500, message: "Report not found." });
-                } else {
-                    console.log("report:", report);
-                    resolve({ status: 200, message: "Report found Sucessfully.", data: report });
-                }
-            })
+        ]).exec((err, report) => {
+            if (err) {
+                console.log("err:", err)
+                reject({ status: 500, message: "Report not found." });
+            } else {
+                console.log("report:", report);
+                resolve({ status: 200, message: "Report found Sucessfully.", data: report });
+            }
+        })
     })
 }
 
@@ -463,12 +497,12 @@ const leaveReasonByUserId = (leaveData) => {
  */
 const editLeaveByAdmin = (leaveData) => {
     return new Promise((resolve, reject) => {
-        UserModel.findOneAndUpdate({ _id: leaveData.userId }, { $set: { total_leave : leaveData.total_leave } }, { upsert: true, new: true }).exec((err, updatedUser) => {
+        UserModel.findOneAndUpdate({ _id: leaveData.userId }, { $set: { total_leave: leaveData.total_leave } }, { upsert: true, new: true }).exec((err, updatedUser) => {
             if (err) {
                 reject({ status: 500, message: "User not updated." });
             }
             else {
-                console.log("updatedUser:",updatedUser)
+                console.log("updatedUser:", updatedUser)
                 resolve({ status: 200, message: 'User Updated Sucessfully.', data: updatedUser });
             }
         })
@@ -476,6 +510,7 @@ const editLeaveByAdmin = (leaveData) => {
 }
 
 module.exports = {
+
     addLeave: addLeave,
     getPendingLeaves: getPendingLeaves,
     getAllLeaves: getAllLeaves,

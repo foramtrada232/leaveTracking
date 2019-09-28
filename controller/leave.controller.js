@@ -29,7 +29,7 @@ addLeave = function (req, res) {
                 const obj = {
                     'to': user.deviceToken,
                     'notification': {
-                        title: 'Leave Application',
+                        title: 'Warning',
                         body: user.name + ',Your '+totalLeave+' days leave completed.',
                     },
                 }
@@ -37,19 +37,18 @@ addLeave = function (req, res) {
                 NotificationService.sendNotification(obj);
             }
             const userId = user._id;
-             if(req.body.noOfDays){
-                console.log("req.body==in else======>", req.body.noOfDays);
-                noOfDays = req.body.noOfDays * 8;
-                console.log("noOfHours:", noOfHours)
-            } else if (req.body.shortLeave){
-            	noOfHours = req.body.noOfHours;
-            }
             const leaveData = {
                 date: { year: result[0], month: result[1], date: result[2] },
-                noOfDays: noOfHours,
                 reason: req.body.reason,
                 extraHours: req.body.extraHours,
                 userId: userId
+            }
+             if(req.body.noOfDays){
+                console.log("req.body==in else======>", req.body.noOfDays);
+                noOfDays = req.body.noOfDays * 8;
+                leaveData['noOfDays'] = noOfDays;
+            } else if (req.body.shortLeave){
+                leaveData['shortLeave'] = req.body.shortLeave;
             }
             console.log("REQUESTED USER:", req.user);
             console.log("leaveData:", leaveData)
@@ -275,7 +274,7 @@ cron.schedule('0 0 0 1 1-12 * ', leaveUpdateByMonthAndyear = () => {
         }
     })
 })
-
+ 
 /** Get Tomorrow not present user's list and send notification to admin */
 cron.schedule('0 0 11 1-31 1-12 * ', tomorrowNotPresentUserList = () => {
     return new Promise((resolve, reject) => {
@@ -289,11 +288,11 @@ cron.schedule('0 0 11 1-31 1-12 * ', tomorrowNotPresentUserList = () => {
         let year = nextDay.getFullYear();
         console.log("DATE:", date);
         const leaveDate = {
-            year: year,
-            month: month + 1,
-            date: date,
+            year: year.toString(),
+            month: (month + 1).toString(),
+            date: date.toString(),
         }
-        console.log("Month:", typeof leaveDate.month);
+        console.log("Month:",  leaveDate);
         LeaveModel.find({ 'date.year': leaveDate.year, 'date.month': leaveDate.month, 'date.date': leaveDate.date, 'status': 'Approved' })
             .exec((err, leave) => {
                 if (err) {
@@ -320,14 +319,31 @@ cron.schedule('0 0 11 1-31 1-12 * ', tomorrowNotPresentUserList = () => {
                     console.log("USERNAME:", userName)
                     UserModel.find({ designation: 'Admin' }).exec((err, admin) => {
                         if (admin) {
+                            if (userName.length == 1){
+                            const obj = {
+                                'to': admin[0].deviceToken,
+                                'notification': {
+                                    title: 'Tomorrow Absent user',
+                                    body: userName + ' is absent Tomorrow.',
+                                },
+                                'data' : {
+                                    url : '/home/leave-application'
+                                }
+                            }
+                            NotificationService.sendNotification(obj);
+                        } else {
                             const obj = {
                                 'to': admin[0].deviceToken,
                                 'notification': {
                                     title: 'Tomorrow Absent user',
                                     body: userName + ' are absent Tomorrow.',
+                                    sound:"default", //If you want notification sound
+                                    click_action:"FCM_PLUGIN_ACTIVITY",  //Must be present for Android
+                                    icon:"fcm_push_icon"  //White icon Android resource
                                 },
                             }
                             NotificationService.sendNotification(obj);
+                        }
                         }
                     })
                 })
