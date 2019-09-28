@@ -15,29 +15,31 @@ const NotificationModel = require("../models/notification.model");
 //     }
 // }
 module.exports.sendNotification = (message) => {
-    console.log("MESSAGE:",message)
+	console.log("MESSAGE:",message)
 
-    fcm.send(message, function (err, response) {
-        console.log("ERROR:",err);
-        console.log("RESPONSE:",response)
-        if (err) {
-            console.log("Something has gone wrong!", err)
-        } else {
-            if (message.notification.title == "Tomorrow Absent user" || "Leave Application") {
-                var today = new Date();
-                var h = today.getHours();
-                var m = today.getMinutes();
-                message.notification['createdTime'] = h + ":" + m;
-                NotificationModel.create(message.notification).then((user) => {
-                    console.log(user)
-                    // res.status(201).json({message: "Notification created successfully." });
-                }).catch((error) => {
-                    console.log("error: ", error);
-                    // res.status(500).json( {message: "Notification not created." });
-                })
-            }
-            console.log("Successfully sent with response: ", response)
-        }
-    })
+	fcm.send(message, function (err, response) {
+		console.log("ERROR:",err);
+		console.log("RESPONSE:",response)
+		if (err) {
+			console.log("Something has gone wrong!", err)
+		} else {
+			if (message.notification.title == "Tomorrow Absent user" || "Leave Application") {
+				let today = new Date();
+				let date = today.getFullYear()+'-' + (today.getMonth()+1) + '-'+today.getDate();
+				let h = today.getHours();
+				let m = today.getMinutes();
+				message.notification['createdTime'] = h + ":" + m;
+				message.notification['createdAt'] = date;
+				NotificationModel.create(message.notification).then((user) => {
+					console.log("saved notification details =========>",user)
+                  // response.status(201).json({message: "Notification created successfully." });
+              }).catch((error) => {
+              	console.log("error: ", error);
+                  // response.status(500).json( {message: "Notification not created." });
+              })
+          }
+          console.log("Successfully sent with response: ", response)
+      }
+  })
 
 }

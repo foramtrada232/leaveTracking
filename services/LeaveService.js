@@ -20,23 +20,23 @@ const addLeave = (leaveData) => {
                     reject({ status: 500, message: 'User Not found.' })
                 } else {
                     console.log("user:", user);
-                    // if (leave.noOfDays > user.total_leave) {
-                    //     const obj = {
-                    //         'to': user.deviceToken,
-                    //         'notification': {
-                    //             title: 'Leave Application',
-                    //             body: user.name + 'your 18 leave is completed.',
-                    //         },
-                    //         'data': {
-                    //             // userData:user
-                    //         }
-                    //     }
-                    //     console.log('obj============>', obj)
-                    //     NotificationService.sendNotification(obj);
-                    //     console.log("warning");
-                    // } else {
-                    //     console.log("No warning");
-                    // }
+                    if (leave.noOfDays > user.total_leave) {
+                        const obj = {
+                                    'to': user.deviceToken,
+                                    'notification': {
+                                        title: 'Leave Application',
+                                        body: user.name + 'your 18 leave is completed.',
+                                    },
+                                    'data': {
+                                        // userData:user
+                                    }
+                                }
+                                console.log('obj============>', obj)
+                                NotificationService.sendNotification(obj);
+                        console.log("warning");
+                    } else {
+                        console.log("No warning");
+                    }
                 }
             })
             resolve({ status: 201, message: "Leave added successfully." });
@@ -72,7 +72,6 @@ const getPendingLeaves = () => {
                 extraHours: 1,
                 userId: {
                     name: '$userId.name',
-                    total_leave: '$userId.total_leave'
                 }
             }
         },
@@ -85,12 +84,6 @@ const getPendingLeaves = () => {
         {
             $unwind: {
                 path: '$userId.name',
-                preserveNullAndEmptyArrays: true
-            }
-        },
-        {
-            $unwind: {
-                path: '$userId.total_leave',
                 preserveNullAndEmptyArrays: true
             }
         },
@@ -131,7 +124,6 @@ const getApprovedLeaves = () => {
                     extraHours: 1,
                     userId: {
                         name: '$userId.name',
-                        total_leave: '$userId.total_leave'
                     }
                 }
             },
@@ -144,12 +136,6 @@ const getApprovedLeaves = () => {
             {
                 $unwind: {
                     path: '$userId.name',
-                    preserveNullAndEmptyArrays: true
-                }
-            },
-            {
-                $unwind: {
-                    path: '$userId.total_leave',
                     preserveNullAndEmptyArrays: true
                 }
             },
@@ -198,17 +184,12 @@ const getLeaveByUserId = (userId) => {
 const updateLeaveByStatus = (leaveData) => {
     return new Promise((resolve, reject) => {
         console.log("leaveData:", leaveData)
-        const day = "";
         LeaveModel.findByIdAndUpdate({ '_id': leaveData.leaveId }, { status: leaveData.status }, { upsert: true, new: true }).exec((err, leave) => {
             if (err) {
                 reject({ status: 500, message: "Leave not updated." });
             } else {
                 if (leave.status == "Approved") {
-                    if(leave.noOfDays){
-                     day = Number(leave.noOfDays);
-                    } else if(leave.shortLeave){
-                         day = Number(leave.shortLeave)
-                    }
+                    const day = leave.noOfDays;
                     console.log("day:", day)
                     UserModel.findOneAndUpdate({ '_id': leave.userId }, { $inc: { total_leave: - day } })
                         .exec((err, user) => {
@@ -233,7 +214,7 @@ const updateLeaveByStatus = (leaveData) => {
 const getLeaveByMonthAndUserId = (leaveData) => {
     return new Promise((resolve, reject) => {
         console.log("leaveData:", leaveData)
-        LeaveModel.find({ 'userId': leaveData.userId, 'date.month': leaveData.month, 'date.year': leaveData.year, 'status': "Approved" }).exec((err, leave) => {
+        LeaveModel.find({ 'userId': leaveData.userId, 'date.month': leaveData.month, 'date.year': leaveData.year,'status': "Approved" }).exec((err, leave) => {
             if (err) {
                 reject({ status: 500, message: "Leave not updated." });
             } else {
@@ -248,7 +229,7 @@ const getLeaveByMonthAndUserId = (leaveData) => {
 const getLeavesByYearAndUserId = (leaveData) => {
     return new Promise((resolve, reject) => {
         console.log("leaveData:", leaveData)
-        LeaveModel.find({ 'userId': leaveData.userId, 'date.year': leaveData.year, 'status': "Approved" }).exec((err, leave) => {
+        LeaveModel.find({ 'userId': leaveData.userId, 'date.year': leaveData.year,'status': "Approved" }).exec((err, leave) => {
             if (err) {
                 reject({ status: 500, message: "Leave not found." });
             } else {
@@ -337,7 +318,7 @@ const getMonthlyReportOfAllUsers = (leaveData) => {
                 $match: { 'date.month': leaveData.month, 'date.year': leaveData.year, 'status': "Approved" }
             },
             {
-                $lookup: {
+                $lookup:{
                     from: 'users',
                     localField: 'userId',
                     foreignField: '_id',
@@ -390,10 +371,10 @@ const getYearlyReportOfAllUsers = (year) => {
         // LeaveModel.find({ 'date.year': year })
         LeaveModel.aggregate([
             {
-                $match: { 'date.year': year, 'status': "Approved" }
+                $match: {  'date.year': year, 'status': "Approved"}
             },
             {
-                $lookup: {
+                $lookup:{
                     from: 'users',
                     localField: 'userId',
                     foreignField: '_id',
@@ -457,22 +438,21 @@ const leaveReasonByUserId = (leaveData) => {
             })
     })
 }
-
 /**
- * @param {object} userData wise edit profile
- */
+* @param {object} userData wise edit profile
+*/
 const editLeaveByAdmin = (leaveData) => {
-    return new Promise((resolve, reject) => {
-        UserModel.findOneAndUpdate({ _id: leaveData.userId }, { $set: { total_leave : leaveData.total_leave } }, { upsert: true, new: true }).exec((err, updatedUser) => {
-            if (err) {
-                reject({ status: 500, message: "User not updated." });
-            }
-            else {
-                console.log("updatedUser:",updatedUser)
-                resolve({ status: 200, message: 'User Updated Sucessfully.', data: updatedUser });
-            }
-        })
-    })
+   return new Promise((resolve, reject) => {
+       UserModel.findOneAndUpdate({ _id: leaveData.userId }, { $set: { total_leave : leaveData.total_leave } }, { upsert: true, new: true }).exec((err, updatedUser) => {
+           if (err) {
+               reject({ status: 500, message: "User not updated." });
+           }
+           else {
+               console.log("updatedUser:",updatedUser)
+               resolve({ status: 200, message: 'User Updated Sucessfully.', data: updatedUser });
+           }
+       })
+   })
 }
 
 module.exports = {
@@ -483,11 +463,11 @@ module.exports = {
     updateLeaveByStatus: updateLeaveByStatus,
     getLeaveByMonthAndUserId: getLeaveByMonthAndUserId,
     getLeavesByYearAndUserId: getLeavesByYearAndUserId,
-    editLeaveByAdmin: editLeaveByAdmin,
     getTodayNotPresentUsers: getTodayNotPresentUsers,
     getMonthlyReportOfAllUsers: getMonthlyReportOfAllUsers,
     getYearlyReportOfAllUsers: getYearlyReportOfAllUsers,
     getApprovedLeaves: getApprovedLeaves,
     leaveReasonByUserId: leaveReasonByUserId,
+    editLeaveByAdmin: editLeaveByAdmin
 
 }
