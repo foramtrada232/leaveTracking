@@ -15,7 +15,7 @@ const NotificationModel = require("../models/notification.model");
 //     }
 // }
 module.exports.sendNotification = (message) => {
-    console.log("MESSAGE:",message)
+	console.log("MESSAGE:",message)
 
     fcm.send(message, function (err, response) {
         console.log("ERROR:",err);
