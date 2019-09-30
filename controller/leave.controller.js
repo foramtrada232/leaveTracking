@@ -278,7 +278,7 @@ const LeaveModel = require("../models/leave.model");
 // })
  
 /** Get Tomorrow not present user's list and send notification to admin */
-cron.schedule('0 0 11 1-31 1-12 * ', tomorrowNotPresentUserList = () => {
+cron.schedule('0 33 10 1-31 1-12 * ', tomorrowNotPresentUserList = () => {
     return new Promise((resolve, reject) => {
         const userId = [];
         var userName = [];

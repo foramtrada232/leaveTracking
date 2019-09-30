@@ -24,8 +24,8 @@ const addLeave = (leaveData) => {
                         const obj = {
                                     'to': user.deviceToken,
                                     'notification': {
-                                        title: 'Leave Application',
-                                        body: user.name + 'your 18 leave is completed.',
+                                        title: 'Warning',
+                                        body: user.name + ',your 18 leave is completed.',
                                     },
                                     'data': {
                                         // userData:user
