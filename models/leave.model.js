@@ -11,6 +11,7 @@ const LeaveSchema = new mongoose.Schema({
     shortLeave: {type:Number},
     reason: { type: String, required: true },
     extraHours: {type: String},
+    approvedBy: {type: Schema.Types.ObjectId, ref: 'User'},
     status: {type: String, default:'pending'}
 });
 

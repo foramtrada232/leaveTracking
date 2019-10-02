@@ -3,7 +3,7 @@ var Schema = mongoose.Schema;
 
 var SendnotificationSchema = new Schema({
 
-	createdAt:{type: Date, expires: 60},
+	createdAt:{type:Date,default:Date.now(),expires:86400},
 	createdTime: {type: String},
 	title:{type:String },
 	body: {type:String},
