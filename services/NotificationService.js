@@ -25,22 +25,34 @@ module.exports.sendNotification = (message) => {
         } else {
             if (message.notification.title == "Tomorrow Absent user" || message.notification.title == "Leave Application") {
                 console.log("==============if calling=============")
-                let today = new Date();
-                let date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-                let h = today.getHours();
-                let m = today.getMinutes();
-                message.notification['createdTime'] = h + ":" + m;
-                message.notification['createdAt'] = date;
-                const newNotification = new NotificationModel(message.notification);
-                newNotification.save(message.notification).then((user) => {
-                    console.log("Notificatoin data", user);
-                }).catch((error) => {
-                    console.log("error: ", error);
-                })
-            }
-            console.log("Successfully sent with response: ", response)
-        }
-    })
+
+
+                var currentTime = new Date();
+                let date = currentTime.getFullYear() + '-' + (currentTime.getMonth() + 1) + '-' + currentTime.getDate();
+
+                var currentOffset = currentTime.getTimezoneOffset();
+
+var ISTOffset = 330;   // IST offset UTC +5:30 
+
+var ISTTime = new Date(currentTime.getTime() + (ISTOffset + currentOffset)*60000);
+
+// ISTTime now represents the time in IST coordinates
+
+var hoursIST = ISTTime.getHours()
+var minutesIST = ISTTime.getMinutes()
+console.log("TIME:",hoursIST +":"+ minutesIST)
+
+message.notification['createdTime'] = hoursIST + ":" + minutesIST;
+message.notification['createdAt'] = date;
+NotificationModel.create(message.notification).then((user) => {
+    console.log("Notificatoin data===========>", user);
+}).catch((error) => {
+    console.log("error: ", error);
+})
+}
+console.log("Successfully sent with response: ", response)
+}
+})
 }
 
 
