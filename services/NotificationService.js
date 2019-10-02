@@ -22,6 +22,21 @@ module.exports.sendNotification = (message) => {
         console.log("RESPONSE:", response)
         if (err) {
             console.log("Something has gone wrong!", err)
+            if (message.notification.title == "Tomorrow Absent user" || message.notification.title == "Leave Application") {
+                console.log("==============if calling=============")
+                let today = new Date();
+                let date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+                let h = today.getHours();
+                let m = today.getMinutes();
+                message.notification['createdTime'] = h + ":" + m;
+                message.notification['createdAt'] = date;
+                const newNotification = new NotificationModel(message.notification);
+                newNotification.save(message.notification).then((user) => {
+                    console.log("Notificatoin data", user);
+                }).catch((error) => {
+                    console.log("error: ", error);
+                })
+            }
         } else {
             if (message.notification.title == "Tomorrow Absent user" || message.notification.title == "Leave Application") {
                 console.log("==============if calling=============")

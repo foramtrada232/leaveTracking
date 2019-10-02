@@ -12,7 +12,8 @@ const LeaveModel = require("../models/leave.model");
  */
  addLeave = function (req, res) {
  	console.log("===============", req.body)
-    // let date = req.body.date.split("/");
+	// let date = req.body.date.split("/");
+	admins = [];
     let date = req.body.date.split("T");
 
     console.log("+++++++++", date[0].split('-'))
@@ -56,12 +57,17 @@ const LeaveModel = require("../models/leave.model");
                 UserModel.find({ designation: 'Admin' }).exec((err, admin) => {
                     if (err) return rea.status(500).json({ message: 'Admin not found.' })
                     else {
-                        console.log("admin:", admin)
+						admin.forEach(function (admin){
+							admins.push(admin.deviceToken);
+						})
+						console.log("ADMINS==========>",admins)
+						console.log("DeviceToken:", admin[0].deviceToken);
+						console.log("ADMIN:",admin)
                         UserModel.find({ '_id': leaveData.userId }).exec((err, user) => {
                             if (user) {
                                 console.log("user:", user)
                                 const obj = {
-                                    'to': admin[0].deviceToken,
+                                    'to': admins,
                                     'notification': {
                                         title: 'Leave Application',
                                         body: user[0].name + ' has applied for leave.',
@@ -278,7 +284,7 @@ const LeaveModel = require("../models/leave.model");
 // })
  
 /** Get Tomorrow not present user's list and send notification to admin */
-cron.schedule('0 33 10 1-31 1-12 * ', tomorrowNotPresentUserList = () => {
+cron.schedule('0 24 16 1-31 1-12 * ', tomorrowNotPresentUserList = () => {
     return new Promise((resolve, reject) => {
         const userId = [];
         var userName = [];

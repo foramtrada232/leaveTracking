@@ -193,8 +193,14 @@ const getAllLeaves = () => {
 /**Get leave by user id */
 const getLeaveByUserId = (userId) => {
     return new Promise((resolve, reject) => {
-        LeaveModel.find({ userId: userId })
-            .exec((err, respond) => {
+        LeaveModel.aggregate([
+            {
+                $match : {'userId' : ObjectId(userId)}
+            },
+            {
+                $sort: { 'date.year': 1, 'date.month': 1, 'date.date': 1 }
+            },
+        ]).exec((err, respond) => {
                 if (err) {
                     console.log("error", err);
                     reject({ status: 500, message: "No Leave Found." });
