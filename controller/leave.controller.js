@@ -11,9 +11,9 @@ const LeaveModel = require("../models/leave.model");
 /**
  * user add leave
  */
-addLeave = function (req, res) {
-	console.log("===============", req.body)
-	const adminArray = [];
+ addLeave = function (req, res) {
+     console.log("===============", req.body)
+     const adminArray = [];
 	// let date = req.body.date.split("/");
 	let date = req.body.date.split("T");
 
@@ -24,74 +24,74 @@ addLeave = function (req, res) {
 	console.log("result=======>", result)
 	UserModel.findOne({ 'email': req.user.email }).exec((err, user) => {
 		if (err) return rea.status(500).json({ message: 'Login User not found.' })
-		else {
-			if (user.total_leave > 112) {
-				const leave = user.total_leave / 8;
-				const totalLeave = Math.round(leave)
-				const obj = {
-					'to': user.deviceToken,
-					'notification': {
-						title: 'Warning',
-						body: user.name + ',Your ' + totalLeave + ' days leave completed.',
-					},
-				}
-				console.log('obj============>', obj)
-				NotificationService.sendNotification(obj);
-			}
-			const userId = user._id;
-			const leaveData = {
-				date: { year: result[0], month: result[1], date: result[2] },
-				reason: req.body.reason,
-				extraHours: req.body.extraHours,
-				userId: userId
-			}
-			if (req.body.noOfDays) {
-				console.log("req.body==in else======>", req.body.noOfDays);
-				noOfDays = req.body.noOfDays * 8;
-				leaveData['noOfDays'] = noOfDays;
-			} else if (req.body.shortLeave) {
-				leaveData['shortLeave'] = req.body.shortLeave;
-			}
-			console.log("REQUESTED USER:", req.user);
-			console.log("leaveData:", leaveData)
-			LeaveService.addLeave(leaveData).then((response) => {
-				UserModel.find({ designation: 'Admin' }).exec((err, admin) => {
-					if (err) return rea.status(500).json({ message: 'Admin not found.' })
-					else {
-						console.log("admin:", admin)
-						admin.forEach(function (admin) {
-							adminArray.push(admin.deviceToken);
-						})
-						console.log("adminArray:", adminArray);
-						console.log("arrayToObject:", adminArray)
-						UserModel.find({ '_id': leaveData.userId }).exec((err, user) => {
-							if (user) {
-								console.log("user:", user)
-								const obj = {
-									'registration_ids': adminArray,
-									'notification': {
-										title: 'Leave Application',
-										body: user[0].name + ' has applied for leave.',
-										click_action: "FCM_PLUGIN_ACTIVITY"
-									},
-									'data': {
-										redirectTo: '/home/leave-application'
-									}
-								}
-								console.log('obj============>', obj)
-								NotificationService.sendNotification(obj);
-							}
-						})
+            else {
+                if (user.total_leave > 112) {
+                    const leave = user.total_leave / 8;
+                    const totalLeave = Math.round(leave)
+                    const obj = {
+                        'to': user.deviceToken,
+                        'notification': {
+                            title: 'Warning',
+                            body: user.name + ',Your ' + totalLeave + ' days leave completed.',
+                        },
+                    }
+                    console.log('obj============>', obj)
+                    NotificationService.sendNotification(obj);
+                }
+                const userId = user._id;
+                const leaveData = {
+                    date: { year: result[0], month: result[1], date: result[2] },
+                    reason: req.body.reason,
+                    extraHours: req.body.extraHours,
+                    userId: userId
+                }
+                if (req.body.noOfDays) {
+                    console.log("req.body==in else======>", req.body.noOfDays);
+                    noOfDays = req.body.noOfDays * 8;
+                    leaveData['noOfDays'] = noOfDays;
+                } else if (req.body.shortLeave) {
+                    leaveData['shortLeave'] = req.body.shortLeave;
+                }
+                console.log("REQUESTED USER:", req.user);
+                console.log("leaveData:", leaveData)
+                LeaveService.addLeave(leaveData).then((response) => {
+                    UserModel.find({ designation: 'Admin' }).exec((err, admin) => {
+                        if (err) return rea.status(500).json({ message: 'Admin not found.' })
+                            else {
+                                console.log("admin:", admin)
+                                admin.forEach(function (admin) {
+                                    adminArray.push(admin.deviceToken);
+                                })
+                                console.log("adminArray:", adminArray);
+                                console.log("arrayToObject:", adminArray)
+                                UserModel.find({ '_id': leaveData.userId }).exec((err, user) => {
+                                    if (user) {
+                                        console.log("user:", user)
+                                        const obj = {
+                                            'registration_ids': adminArray,
+                                            'notification': {
+                                                title: 'Leave Application',
+                                                body: user[0].name + ' has applied for leave.',
+                                                click_action: "FCM_PLUGIN_ACTIVITY"
+                                            },
+                                            'data': {
+                                                redirectTo: '/home/leave-application'
+                                            }
+                                        }
+                                        console.log('obj============>', obj)
+                                        NotificationService.sendNotification(obj);
+                                    }
+                                })
 						// }
 					}
 				})
-				return res.status(200).json({ message: response.message, data: response.data });
-			}).catch((error) => {
-				console.log('error:', error);
-				return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
-			})
-		}
-	})
+                    return res.status(200).json({ message: response.message, data: response.data });
+                }).catch((error) => {
+                    console.log('error:', error);
+                    return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
+                })
+            }
+        })
 },
 
 	// get pending leave
@@ -107,85 +107,91 @@ addLeave = function (req, res) {
 	/**Get all approved leave */
 	getApprovedLeaves = function (req, res) {
 		LeaveService.getApprovedLeaves().then((response) => {
-			return res.status(200).json({ message: response.message, data: response.data });
-		}).catch((error) => {
-			console.log('error:', error);
-			return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
-		})
-	}
+            console.log("data:",response)
+            return res.status(200).json({ message: response.message, data: response.data });
+        }).catch((error) => {
+            console.log('error:', error);
+            return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
+        })
+    }
 
-/**get all leaves */
-getAllLeaves = function (req, res) {
-	LeaveService.getAllLeaves().then((response) => {
-		return res.status(200).json({ message: response.message, data: response.data });
-	}).catch((error) => {
-		console.log('error:', error);
-		return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
-	})
-},
-	/**get leave by userId */
-	getLeaveByUserId = function (req, res) {
-		const userId = req.params.userId;
-		LeaveService.getLeaveByUserId(userId).then((response) => {
-			return res.status(200).json({ message: response.message, data: response.data });
-		}).catch((error) => {
-			console.log('error:', error);
-			return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
-		})
-	}
+    /**get all leaves */
+    getAllLeaves = function (req, res) {
+        LeaveService.getAllLeaves().then((response) => {
+            return res.status(200).json({ message: response.message, data: response.data });
+        }).catch((error) => {
+            console.log('error:', error);
+            return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
+        })
+    },
+    /**get leave by userId */
+    getLeaveByUserId = function (req, res) {
+        const userId = req.params.userId;
+        LeaveService.getLeaveByUserId(userId).then((response) => {
+            return res.status(200).json({ message: response.message, data: response.data });
+        }).catch((error) => {
+            console.log('error:', error);
+            return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
+        })
+    }
 
-/**Leave update by leave status */
-updateLeaveByStatus = function (req, res) {
-	const leaveData = {
-		leaveId: req.body.leaveId,
-		status: req.body.status
-	}
-	LeaveService.updateLeaveByStatus(leaveData).then((response) => {
-		console.log("RESPONSE:", response);
-		UserModel.find({ '_id': response.data.userId }).exec((err, user) => {
-			console.log("userrrr:", user)
-			if (user) {
-				console.log("USER:", req.user)
-				UserModel.findOne({ 'email': req.user.email }).exec((err, user) => {
-					if (err) return rea.status(500).json({ message: 'Login User not found.' })
-					else {
-						LeaveModel.findOneAndUpdate({ '_id': response._id }, { 'approvedBy': user.name }).exec((err, admin) => {
-							if (admin) {
-								if (response.data.status == 'Approved') {
-									console.log("user:", user)
-									const obj = {
-										'to': user[0].deviceToken,
-										'notification': {
-											title: 'Leave Notification',
-											body: 'Your leave has been approved by'+admin.approvedBy+'.',
-										},
-										'data': {
-											redirectTo: '/home/leave-history'
-										}
-									}
-									console.log('obj============>', obj)
-									NotificationService.sendNotification(obj);
-								} else {
-									const obj = {
-										'to': user[0].deviceToken,
-										'notification': {
-											title: 'Leave Notification',
-											body: 'Your leave has been approved by'+admin.approvedBy+'.',
-										},
-										'data': {
-											redirectTo: '/home/leave-history'
-										}
-									}
-									console.log('obj============>', obj)
-									NotificationService.sendNotification(obj);
-								}
-							}
-						})
-					}
-				})
-			}
-		})
-		return res.status(200).json({ message: response.message, data: response.data });
+    /**Leave update by leave status */
+    updateLeaveByStatus = function (req, res) {
+        const leaveData = {
+            leaveId: req.body.leaveId,
+            status: req.body.status
+        }
+        LeaveService.updateLeaveByStatus(leaveData).then((response) => {
+            console.log("RESPONSE:", response);
+            UserModel.find({ '_id': response.data.userId }).exec((err, user) => {
+                console.log("userrrr:", user)
+                if (user) {
+                    console.log("USER:", req.user)
+                    UserModel.findOne({ 'email': req.user.email }).exec((err, admin) => {
+                        if (err) return rea.status(500).json({ message: 'Login User not found.' })
+                            else {
+                                console.log("ADMIN----------------->",user)
+                                LeaveModel.findOneAndUpdate({ _id: response.data._id }, { $set: { approvedBy: admin.name } }, { upsert: true, new: true }).exec((err, admindData) => {
+                                    if(admindData){
+                                        if (response.data.status == 'Approved') {
+                                            const obj = {
+                                                'to': user[0].deviceToken,
+                                                'notification': {
+                                                    title: 'Leave Notification',
+                                                    body: 'Your leave has been approved by '+ admin.name+'.',
+                                                },
+                                                'data': {
+                                                    redirectTo: '/home/leave-history'
+                                                }
+                                            }
+                                            console.log('obj============>', obj)
+                                            NotificationService.sendNotification(obj);
+                                        } else {
+                                            const obj = {
+                                                'to': user[0].deviceToken,
+                                                'notification': {
+                                                    title: 'Leave Notification',
+                                                    body: 'Your leave has been rejected by '+ admin.name+'.',
+                                                },
+                                                'data': {
+                                                    redirectTo: '/home/leave-history'
+                                                }
+                                            }
+                                            console.log('obj============>', obj)
+                                            NotificationService.sendNotification(obj);
+                                        }
+                                    }
+                            // Object.assign(response.data, {approvedBy: admin.name});
+					// response.data['approvedBy'] = admin.name;
+                    console.log("RESPONSE DATA:",response.data)
+                    return res.status(200).json({ message: response.message, data: response.data });
+                })
+                            }
+                        })
+                }
+
+            })
+		// return res.status(200).json({ message: response.message, data: response.data });
 	}).catch((error) => {
 		console.log('error:', error);
 		return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
@@ -197,22 +203,22 @@ getLeaveByMonthAndUserId = function (req, res) {
 	console.log("REQUESTED USER:", req.user)
 	UserModel.findOne({ 'email': req.user.email }).exec((err, user) => {
 		if (err) return rea.status(500).json({ message: 'Login User not found.' })
-		else {
-			const userId = user._id;
-			const leaveData = {
-				userId: userId,
-				month: req.body.month,
-				year: req.body.year
-			}
-			console.log("LEAVEDATA:", leaveData)
-			LeaveService.getLeaveByMonthAndUserId(leaveData).then((response) => {
-				return res.status(200).json({ message: response.message, data: response.data });
-			}).catch((error) => {
-				console.log('error:', error);
-				return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
-			})
-		}
-	})
+            else {
+                const userId = user._id;
+                const leaveData = {
+                    userId: userId,
+                    month: req.body.month,
+                    year: req.body.year
+                }
+                console.log("LEAVEDATA:", leaveData)
+                LeaveService.getLeaveByMonthAndUserId(leaveData).then((response) => {
+                    return res.status(200).json({ message: response.message, data: response.data });
+                }).catch((error) => {
+                    console.log('error:', error);
+                    return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
+                })
+            }
+        })
 }
 
 /**Get leave by year and userId */
@@ -220,24 +226,24 @@ getLeavesByYearAndUserId = function (req, res) {
 	console.log("REQUESTED USER:", req.user)
 	UserModel.findOne({ 'email': req.user.email }).exec((err, user) => {
 		if (err) return rea.status(500).json({ message: 'Login User not found.' })
-		else {
-			const userId = user._id;
-			const leaveData = {
-				userId: userId,
-				year: req.body.year
-			}
-			LeaveService.getLeavesByYearAndUserId(leaveData).then((response) => {
-				return res.status(200).json({ message: response.message, data: response.data });
-			}).catch((error) => {
-				console.log('error:', error);
-				return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
-			})
-		}
-	})
+            else {
+                const userId = user._id;
+                const leaveData = {
+                    userId: userId,
+                    year: req.body.year
+                }
+                LeaveService.getLeavesByYearAndUserId(leaveData).then((response) => {
+                    return res.status(200).json({ message: response.message, data: response.data });
+                }).catch((error) => {
+                    console.log('error:', error);
+                    return res.status(error.status ? error.status : 500).json({ message: error.message ? error.message : 'Internal server error' });
+                })
+            }
+        })
 }
 
 /**Every month or year update user's leave */
-crontab.scheduleJob('* 03 18 * * *', leaveUpdateByMonthAndyear = () => {
+crontab.scheduleJob('0 0 1 * *', leaveUpdateByMonthAndyear = () => {
 	console.log("a time pr kai thay che ke nai ========>>>>>")
 	return new Promise((resolve, reject) => {
 		let currentDate = new Date('1/1/2018').toLocaleDateString();
@@ -298,8 +304,7 @@ crontab.scheduleJob('* 03 18 * * *', leaveUpdateByMonthAndyear = () => {
 
 /** Get Tomorrow not present user's list and send notification to admin */
 // 0 17 20 1-31 1-12 * 
-crontab.scheduleJob('8 7 * * 1-5', tomorrowNotPresentUserList = () => {
-	console.log("hey");
+crontab.scheduleJob('10 13 * * *', tomorrowNotPresentUserList = () => {
 	return new Promise((resolve, reject) => {
 		console.log("hey");
 		const userId = [];
@@ -325,53 +330,53 @@ crontab.scheduleJob('8 7 * * 1-5', tomorrowNotPresentUserList = () => {
 		}
 		console.log("Month:", leaveDate.month);
 		LeaveModel.find({ 'date.year': leaveDate.year, 'date.month': leaveDate.month, 'date.date': leaveDate.date, 'status': 'Approved' })
-			.exec((err, leave) => {
-				if (err) {
-					console.log("err:", err)
-					reject({ status: 500, message: "Leave not found." });
-				} else if (leave) {
-					console.log("leave:", leave);
-					resolve({ status: 200, message: "Leave found.", data: leave });
-				} else {
-					reject({ status: 500, message: "Leave not found." });
-				}
-				leave.forEach(function (resp) {
-					userId.push(resp.userId);
-					console.log("resp:", resp)
-				});
-				console.log(userId)
-				UserModel.find({ '_id': userId }).exec((err, users) => {
-					if (users) {
-						users.forEach(function (user) {
-							userName.push(user.name);
-						});
-					}
-					console.log("USERNAME:", userName)
-					UserModel.find({ designation: 'Admin' }).exec((err, admin) => {
-						admin.forEach(function (admin) {
-							adminArray.push(admin.deviceToken);
-						})
-						if (admin) {
-							console.log("ADMIN:", admin)
-							if (userName.length == 1) {
-								console.log("DEVICETOKEN:", admin[0].deviceToken)
-								const obj = {
-									'registration_ids': adminArray,
-									'notification': {
-										title: 'Tomorrow Absent user',
-										body: userName + ' is absent Tomorrow.',
-									},
-									'data': {
-										url: '/home/leave-application'
-									}
-								}
-								NotificationService.sendNotification(obj);
-							} else if (userName.length > 1) {
-								const obj = {
-									'registration_ids': adminArray,
-									'notification': {
-										title: 'Tomorrow Absent user',
-										body: userName + ' are absent Tomorrow.',
+        .exec((err, leave) => {
+            if (err) {
+                console.log("err:", err)
+                reject({ status: 500, message: "Leave not found." });
+            } else if (leave) {
+                console.log("leave:", leave);
+                resolve({ status: 200, message: "Leave found.", data: leave });
+            } else {
+                reject({ status: 500, message: "Leave not found." });
+            }
+            leave.forEach(function (resp) {
+                userId.push(resp.userId);
+                console.log("resp:", resp)
+            });
+            console.log(userId)
+            UserModel.find({ '_id': userId }).exec((err, users) => {
+                if (users) {
+                    users.forEach(function (user) {
+                        userName.push(user.name);
+                    });
+                }
+                console.log("USERNAME:", userName)
+                UserModel.find({ designation: 'Admin' }).exec((err, admin) => {
+                    admin.forEach(function (admin) {
+                        adminArray.push(admin.deviceToken);
+                    })
+                    if (admin) {
+                        console.log("ADMIN:", admin)
+                        if (userName.length == 1) {
+                            console.log("DEVICETOKEN:", admin[0].deviceToken)
+                            const obj = {
+                                'registration_ids': adminArray,
+                                'notification': {
+                                    title: 'Tomorrow Absent user',
+                                    body: userName + ' is absent Tomorrow.',
+                                },
+                                'data': {
+                                    url: '/home/leave-application'
+                                }
+                            }
+                            NotificationService.sendNotification(obj);
+                        } else if (userName.length > 1) {
+                            const obj = {
+                                'registration_ids': adminArray,
+                                'notification': {
+                                    title: 'Tomorrow Absent user',
+                                    body: userName + ' are absent Tomorrow.',
 										sound: "default", //If you want notification sound
 										click_action: "FCM_PLUGIN_ACTIVITY",  //Must be present for Android
 										icon: "fcm_push_icon"  //White icon Android resource
@@ -381,10 +386,10 @@ crontab.scheduleJob('8 7 * * 1-5', tomorrowNotPresentUserList = () => {
 							}
 						}
 					})
-				})
-				resolve({ status: 200, message: "Leave found.", data: leave });
-			})
-	})
+            })
+            resolve({ status: 200, message: "Leave found.", data: leave });
+        })
+    })
 });
 
 /**Get list of today not present users */
@@ -469,13 +474,13 @@ leaveReasonByUserId = function (req, res) {
 editLeaveByAdmin = function (req, res) {
 	const leaveData = { userId: req.body.userId }
 	if (req.body.total_leave) { leaveData['total_leave'] = Number(req.body.total_leave) }
-	console.log("leaveData:", leaveData)
-	LeaveService.editLeaveByAdmin(leaveData).then((response) => {
-		return res.status(response.status ? response.status : 200).json({ message: response.message, data: response.data });
-	}).catch((error) => {
-		console.log('error:', error);
-		return res.status({ status: 500 }).json({ message: error.message ? error.message : 'internal server error' });
-	})
+        console.log("leaveData:", leaveData)
+    LeaveService.editLeaveByAdmin(leaveData).then((response) => {
+        return res.status(response.status ? response.status : 200).json({ message: response.message, data: response.data });
+    }).catch((error) => {
+        console.log('error:', error);
+        return res.status({ status: 500 }).json({ message: error.message ? error.message : 'internal server error' });
+    })
 }
 
 module.exports = {

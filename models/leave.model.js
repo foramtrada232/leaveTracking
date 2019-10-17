@@ -7,11 +7,11 @@ const LeaveSchema = new mongoose.Schema({
 
     userId : { type: Schema.Types.ObjectId, ref: 'User' },
 	date: {type:Object,required: true},
-    noOfDays: {type:Number},
-    shortLeave: {type:Number},
+    noOfDays: {type:Schema.Types.Mixed}, //{type:Number,default:null},
+    shortLeave: {type:Number, default: null},
     reason: { type: String, required: true },
     extraHours: {type: String},
-    approvedBy: {type: Schema.Types.ObjectId, ref: 'User'},
+    approvedBy: {type: String, default:null},
     status: {type: String, default:'pending'}
 });
 

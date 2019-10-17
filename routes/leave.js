@@ -14,7 +14,7 @@ router.get("/get-pending-leaves", LeaveController.getPendingLeaves);
 router.get("/get-approved-leaves", LeaveController.getApprovedLeaves);
 router.get("/get-all-leaves", LeaveController.getAllLeaves);
 router.get("/get-leave-by-userId/:userId", LeaveController.getLeaveByUserId);
-router.put("/leave-update-by-status", LeaveController.updateLeaveByStatus);
+router.put("/leave-update-by-status",authValidate.validateToken, LeaveController.updateLeaveByStatus);
 router.post("/get-leave-by-month",authValidate.validateToken, LeaveController.getLeaveByMonthAndUserId);
 router.post("/get-leave-by-year",authValidate.validateToken,LeaveController.getLeavesByYearAndUserId);
 router.put("/add-monthly-leave", LeaveController.leaveUpdateByMonthAndyear);

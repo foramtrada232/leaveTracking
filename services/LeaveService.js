@@ -15,27 +15,27 @@ const ObjectId = require('mongodb').ObjectId;
          console.log("leaveData:", leaveData)
          LeaveModel.create(leaveData).then((leave) => {
              /** Warning Notification when user apply more days leave then remaining leave */
-             UserModel.findById({ _id: leaveData.userId }).exec((err, user) => {
-                 if (err) {
-                     reject({ status: 500, message: 'User Not found.' })
-                 } else {
-                     console.log("user:", user);
-                     if (leave.noOfDays > user.total_leave) {
-                         const obj = {
-                             'to': user.deviceToken,
-                             'notification': {
-                                 title: 'Warning',
-                                 body: user.name + ',your 18 leave is completed.',
-                             }
-                                }
-                                console.log('obj============>', obj)
-                                NotificationService.sendNotification(obj);
-                                console.log("warning");
-                            } else {
-                                console.log("No warning");
-                            }
-                        }
-                    })
+             // UserModel.findById({ _id: leaveData.userId }).exec((err, user) => {
+             //     if (err) {
+             //         reject({ status: 500, message: 'User Not found.' })
+             //     } else {
+             //         console.log("user:", user);
+             //         if (leave.noOfDays > user.total_leave) {
+             //             const obj = {
+             //                 'to': user.deviceToken,
+             //                 'notification': {
+             //                     title: 'Warning',
+             //                     body: user.name + ',your 18 leave is completed.',
+             //                 }
+             //                    }
+             //                    console.log('obj============>', obj)
+             //                    NotificationService.sendNotification(obj);
+             //                    console.log("warning");
+             //                } else {
+             //                    console.log("No warning");
+             //                }
+             //            }
+             //        })
              resolve({ status: 201, message: "Leave added successfully." });
          }).catch((error) => {
              console.log("error:", error);
@@ -130,6 +130,7 @@ const ObjectId = require('mongodb').ObjectId;
                  shortLeave: 1,
                  reason: 1,
                  extraHours: 1,
+                 approvedBy: 1,
                  userId: {
                      name: '$userId.name',
                  }

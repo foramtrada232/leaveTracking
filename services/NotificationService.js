@@ -22,21 +22,6 @@ module.exports.sendNotification = (message) => {
         console.log("RESPONSE:", response)
         if (err) {
             console.log("Something has gone wrong!", err)
-            if (message.notification.title == "Tomorrow Absent user" || message.notification.title == "Leave Application") {
-                console.log("==============if calling=============")
-                let today = new Date();
-                let date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-                let h = today.getHours();
-                let m = today.getMinutes();
-                message.notification['createdTime'] = h + ":" + m;
-                message.notification['createdAt'] = date;
-                const newNotification = new NotificationModel(message.notification);
-                newNotification.save(message.notification).then((user) => {
-                    console.log("Notificatoin data", user);
-                }).catch((error) => {
-                    console.log("error: ", error);
-                })
-            }
         } else {
             if (message.notification.title == "Tomorrow Absent user" || message.notification.title == "Leave Application") {
                 console.log("==============if calling=============")
@@ -53,11 +38,13 @@ var ISTTime = new Date(currentTime.getTime() + (ISTOffset + currentOffset)*60000
 
 // ISTTime now represents the time in IST coordinates
 
-var hoursIST = ISTTime.getHours()
-var minutesIST = ISTTime.getMinutes()
-console.log("TIME:",hoursIST +":"+ minutesIST)
-
-message.notification['createdTime'] = hoursIST + ":" + minutesIST;
+var hoursIST = currentTime.setHours(currentTime.getHours() + 5) ;
+var minutesIST = currentTime.setMinutes(currentTime.getMinutes() + 30) ;
+console.log("============TIME=============:",hoursIST +":"+ minutesIST);
+const hours = currentTime.getHours();
+const minute = currentTime.getMinutes();
+console.log("MINUTE:",hours +":"+minute)
+message.notification['createdTime'] = hours + ":" + minute;
 message.notification['createdAt'] = date;
 NotificationModel.create(message.notification).then((user) => {
     console.log("Notificatoin data===========>", user);
