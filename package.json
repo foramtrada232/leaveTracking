@@ -34,7 +34,7 @@
     "express-validator": "^5.2.0",
     "fcm-node": "^1.5.2",
     "http": "0.0.0",
-    "jsonwebtoken": "^8.3.0",
+    "jsonwebtoken": "^9.0.0",
     "mongoose": "^5.1.6",
     "morgan": "^1.9.0",
     "multer": "^1.4.2",
